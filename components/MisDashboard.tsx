@@ -14,6 +14,8 @@ const STATUS_OPTIONS: Array<'ALL' | TicketStatus> = [
   'CANCELLED',
 ];
 
+const ALERT_SOUND = '/sounds/alert.mp3';
+
 function playDefault(volume = 1) {
   const AudioContextClass =
     window.AudioContext ||
@@ -129,18 +131,20 @@ export default function MisDashboard() {
               localStorage.getItem('misVolume') || '1'
             );
 
-            const src = localStorage.getItem('misSound');
-
-            if (src) {
-              audio.current = new Audio(src);
-              audio.current.volume = savedVolume;
-
-              audio.current
-                .play()
-                .catch(() => playDefault(savedVolume));
-            } else {
-              playDefault(savedVolume);
+            if (audio.current) {
+              audio.current.pause();
+              audio.current.currentTime = 0;
             }
+
+            audio.current = new Audio(ALERT_SOUND);
+            audio.current.volume = savedVolume;
+
+            audio.current
+              .play()
+              .catch((error) => {
+                console.error('Unable to play alert sound:', error);
+                playDefault(savedVolume);
+              });
 
             if (
               'Notification' in window &&
@@ -230,19 +234,20 @@ export default function MisDashboard() {
       await Notification.requestPermission();
     }
 
-    playDefault(volume);
-  }
+    try {
+      if (audio.current) {
+        audio.current.pause();
+        audio.current.currentTime = 0;
+      }
 
-  function chooseSound(file?: File) {
-    if (!file) return;
+      audio.current = new Audio(ALERT_SOUND);
+      audio.current.volume = volume;
 
-    const reader = new FileReader();
-
-    reader.onload = () => {
-      localStorage.setItem('misSound', String(reader.result));
-    };
-
-    reader.readAsDataURL(file);
+      await audio.current.play();
+    } catch (error) {
+      console.error('Unable to test alert sound:', error);
+      playDefault(volume);
+    }
   }
 
   function applyTheme(mode: ThemeMode) {
@@ -493,18 +498,6 @@ export default function MisDashboard() {
                       </option>
                     ))}
                   </select>
-
-                  <label className="ui-btn ui-btn--ghost file-button">
-                    Choose alert sound
-                    <input
-                      hidden
-                      type="file"
-                      accept="audio/*"
-                      onChange={(event) =>
-                        chooseSound(event.target.files?.[0])
-                      }
-                    />
-                  </label>
 
                   <label className="volume-control">
                     <span>Volume</span>

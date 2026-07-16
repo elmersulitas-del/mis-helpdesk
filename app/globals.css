@@ -2000,3 +2000,9 @@ textarea {
     vertical-align: middle !important;
   }
 }
+.filterbar {
+  grid-template-columns:
+    minmax(220px, 1fr)
+    180px
+    minmax(150px, 220px);
+}
