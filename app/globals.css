@@ -2006,3 +2006,1266 @@ textarea {
     180px
     minmax(150px, 220px);
 }
+/* =========================================================
+   EMPLOYEE GOOGLE LOGIN PAGE
+   ========================================================= */
+
+.employee-home {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+.employee-login-stage {
+  position: relative;
+  isolation: isolate;
+
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+
+  padding: 40px 24px;
+
+  overflow: hidden;
+}
+
+.employee-login-stage::before {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+  z-index: -3;
+
+  background:
+    radial-gradient(
+      circle at 16% 12%,
+      color-mix(in oklab, var(--a3) 28%, transparent),
+      transparent 35%
+    ),
+    radial-gradient(
+      circle at 86% 10%,
+      color-mix(in oklab, var(--a1) 22%, transparent),
+      transparent 38%
+    ),
+    linear-gradient(
+      145deg,
+      color-mix(in oklab, var(--bg) 88%, #ffffff),
+      var(--bg)
+    );
+}
+
+.employee-login-stage::after {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+
+  opacity: 0.32;
+
+  background-image:
+    linear-gradient(
+      color-mix(in oklab, var(--ink) 4%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      color-mix(in oklab, var(--ink) 4%, transparent) 1px,
+      transparent 1px
+    );
+
+  background-size: 42px 42px;
+
+  mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    black 25%,
+    black 75%,
+    transparent
+  );
+}
+
+.employee-login-background-logo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: -1;
+
+  width: min(70vw, 680px);
+  aspect-ratio: 1;
+
+  transform: translate(-50%, -50%);
+
+  opacity: 0.045;
+
+  background-image: url("/icclogo.png");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+
+  filter: grayscale(1);
+  pointer-events: none;
+}
+
+.employee-login-card {
+  position: relative;
+
+  width: min(100%, 470px);
+
+  padding: 30px 34px 28px;
+
+  overflow: hidden;
+
+  border: 1px solid
+    color-mix(in oklab, var(--surface) 55%, var(--line));
+  border-radius: 28px;
+
+  background: color-mix(
+    in oklab,
+    var(--surface) 87%,
+    transparent
+  );
+
+  box-shadow:
+    0 35px 90px -40px rgba(20, 30, 70, 0.5),
+    0 12px 30px -18px rgba(20, 30, 70, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+
+  text-align: center;
+
+  backdrop-filter: blur(24px) saturate(1.25);
+}
+
+.employee-login-card::before {
+  content: "";
+
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+
+  height: 4px;
+
+  background: var(--spectrum);
+}
+
+.employee-login-logo-wrap {
+  display: grid;
+  width: 106px;
+  height: 106px;
+  place-items: center;
+
+  margin: 0 auto 18px;
+
+  border: 1px solid
+    color-mix(in oklab, var(--a2) 25%, var(--line));
+  border-radius: 50%;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 16px 35px
+      color-mix(in oklab, var(--a2) 23%, transparent),
+    inset 0 0 0 7px
+      color-mix(in oklab, var(--a2) 5%, transparent);
+}
+
+.employee-login-logo {
+  display: block;
+
+  width: 88px;
+  height: 88px;
+
+  object-fit: contain;
+}
+
+.employee-login-heading span {
+  color: var(--muted);
+
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.employee-login-heading h1 {
+  margin: 7px 0 2px;
+
+  font-size: 32px;
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+}
+
+.employee-login-heading p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.employee-login-divider {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+
+  margin: 25px 0 20px;
+
+  color: var(--muted);
+
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.employee-login-divider::before,
+.employee-login-divider::after {
+  content: "";
+
+  height: 1px;
+  flex: 1;
+
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--line)
+  );
+}
+
+.employee-login-divider::after {
+  background: linear-gradient(
+    90deg,
+    var(--line),
+    transparent
+  );
+}
+
+.employee-login-content h2 {
+  margin: 0 0 7px;
+
+  font-size: 22px;
+  letter-spacing: -0.025em;
+}
+
+.employee-login-content > p {
+  max-width: 350px;
+  margin: 0 auto;
+
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.employee-domain-notice {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+
+  margin: 20px 0 14px;
+  padding: 11px 13px;
+
+  border: 1px solid
+    color-mix(in oklab, var(--a2) 22%, var(--line));
+  border-radius: 13px;
+
+  background: color-mix(
+    in oklab,
+    var(--a2) 7%,
+    var(--surface)
+  );
+
+  text-align: left;
+}
+
+.employee-domain-icon {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  place-items: center;
+
+  border-radius: 10px;
+
+  background: color-mix(
+    in oklab,
+    var(--a2) 15%,
+    var(--surface)
+  );
+
+  color: var(--a2);
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.employee-domain-notice b,
+.employee-domain-notice small {
+  display: block;
+}
+
+.employee-domain-notice b {
+  font-size: 12px;
+}
+
+.employee-domain-notice small {
+  margin-top: 1px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.employee-google-button {
+  display: grid;
+  width: 100%;
+  grid-template-columns: 30px 1fr 30px;
+  align-items: center;
+  gap: 10px;
+
+  margin-top: 14px;
+  padding: 12px 14px;
+
+  border: 1px solid
+    color-mix(in oklab, var(--ink) 15%, var(--line));
+  border-radius: 13px;
+
+  background: #ffffff;
+  color: #24272f;
+
+  font-size: 14px;
+  font-weight: 800;
+
+  box-shadow: 0 8px 25px -15px rgba(20, 30, 60, 0.5);
+
+  cursor: pointer;
+
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.employee-google-button:hover {
+  transform: translateY(-2px);
+
+  border-color: color-mix(
+    in oklab,
+    var(--a2) 50%,
+    var(--line)
+  );
+
+  box-shadow: 0 15px 30px -17px rgba(20, 30, 60, 0.55);
+}
+
+.employee-google-button:active {
+  transform: translateY(0);
+}
+
+.google-icon {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.google-icon svg {
+  width: 21px;
+  height: 21px;
+}
+
+.employee-google-arrow {
+  color: var(--muted);
+  font-size: 18px;
+}
+
+.employee-login-content .employee-login-footer {
+  margin-top: 16px;
+
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.employee-login-error {
+  margin: 14px 0 0;
+  text-align: left;
+}
+
+.employee-login-loading {
+  display: grid;
+  place-items: center;
+  gap: 14px;
+
+  min-height: 320px;
+}
+
+.employee-login-loading .employee-login-logo {
+  width: 76px;
+  height: 76px;
+}
+
+.employee-login-loading p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.employee-loading-spinner {
+  width: 31px;
+  height: 31px;
+
+  border: 3px solid
+    color-mix(in oklab, var(--a2) 20%, transparent);
+  border-top-color: var(--a2);
+  border-radius: 50%;
+
+  animation: employee-spin 0.8s linear infinite;
+}
+
+@keyframes employee-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.employee-account-error-icon {
+  display: grid;
+  width: 54px;
+  height: 54px;
+  place-items: center;
+
+  margin: 0 auto 15px;
+
+  border-radius: 50%;
+  background: color-mix(
+    in oklab,
+    var(--danger) 13%,
+    var(--surface)
+  );
+
+  color: var(--danger);
+  font-size: 25px;
+  font-weight: 900;
+}
+
+.employee-signout-button {
+  width: 100%;
+  margin-top: 15px;
+}
+
+.employee-portal-content {
+  width: min(100% - 30px, 1180px);
+  margin: 0 auto;
+  padding: 22px 0 60px;
+}
+
+.employee-portal-header {
+  margin-bottom: 18px;
+}
+
+.employee-portal-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.employee-portal-brand img {
+  width: 52px;
+  height: 52px;
+
+  padding: 2px;
+
+  object-fit: contain;
+
+  border-radius: 50%;
+  background: #ffffff;
+
+  box-shadow: 0 7px 20px
+    color-mix(in oklab, var(--a2) 20%, transparent);
+}
+
+.employee-portal-brand b,
+.employee-portal-brand span {
+  display: block;
+}
+
+.employee-portal-brand b {
+  font-size: 18px;
+}
+
+.employee-portal-brand span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.employee-account-card {
+  border-radius: 17px;
+}
+
+.employee-account-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.employee-account-avatar {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  place-items: center;
+
+  border-radius: 12px;
+  background: var(--spectrum);
+
+  color: #ffffff;
+  font-size: 17px;
+  font-weight: 900;
+}
+
+@media (max-width: 600px) {
+  .employee-login-stage {
+    padding: 24px 14px;
+  }
+
+  .employee-login-card {
+    padding: 25px 20px 22px;
+    border-radius: 22px;
+  }
+
+  .employee-login-logo-wrap {
+    width: 92px;
+    height: 92px;
+  }
+
+  .employee-login-logo {
+    width: 74px;
+    height: 74px;
+  }
+
+  .employee-login-heading h1 {
+    font-size: 27px;
+  }
+
+  .employee-google-button {
+    font-size: 13px;
+  }
+
+  .employee-account-card {
+    align-items: stretch;
+  }
+
+  .employee-account-card .btn {
+    width: 100%;
+  }
+}
+/* =========================================================
+   SPLIT GOOGLE LOGIN DESIGN
+   ========================================================= */
+
+.employee-home {
+  min-height: 100vh;
+}
+
+.split-login-page {
+  position: relative;
+  isolation: isolate;
+
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+
+  padding: 30px;
+
+  overflow: hidden;
+
+  background:
+    radial-gradient(
+      circle at 12% 12%,
+      rgba(20, 210, 176, 0.18),
+      transparent 32%
+    ),
+    radial-gradient(
+      circle at 90% 15%,
+      rgba(108, 92, 231, 0.17),
+      transparent 35%
+    ),
+    linear-gradient(
+      135deg,
+      #edf4f7 0%,
+      #eaf0f8 48%,
+      #f1effb 100%
+    );
+}
+
+.split-login-page::before {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+  z-index: -3;
+
+  opacity: 0.28;
+
+  background-image:
+    linear-gradient(
+      rgba(20, 40, 80, 0.055) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(20, 40, 80, 0.055) 1px,
+      transparent 1px
+    );
+
+  background-size: 44px 44px;
+}
+
+.split-login-background-logo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: -2;
+
+  width: min(78vw, 760px);
+  aspect-ratio: 1;
+
+  transform: translate(-50%, -50%);
+
+  opacity: 0.035;
+
+  background-image: url("/icclogo.png");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+
+  filter: grayscale(1);
+  pointer-events: none;
+}
+
+.split-login-card {
+  display: grid;
+  width: min(100%, 940px);
+  min-height: 510px;
+
+  grid-template-columns: 1.05fr 0.95fr;
+
+  overflow: hidden;
+
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  border-radius: 28px;
+
+  background: rgba(255, 255, 255, 0.9);
+
+  box-shadow:
+    0 40px 90px -42px rgba(20, 37, 75, 0.45),
+    0 18px 42px -28px rgba(20, 37, 75, 0.35);
+
+  backdrop-filter: blur(18px);
+}
+
+.split-login-google-panel {
+  display: grid;
+  place-items: center;
+
+  padding: 55px 54px;
+
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.split-login-google-content {
+  width: 100%;
+  max-width: 390px;
+}
+
+.split-login-eyebrow {
+  display: inline-flex;
+
+  margin-bottom: 12px;
+  padding: 6px 10px;
+
+  border-radius: 999px;
+
+  background: rgba(46, 155, 255, 0.1);
+  color: #2575c7;
+
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.split-login-google-content h1 {
+  margin: 0 0 12px;
+
+  color: #141923;
+
+  font-size: clamp(36px, 4vw, 49px);
+  line-height: 1;
+  letter-spacing: -0.05em;
+}
+
+.split-login-google-content > p {
+  margin: 0;
+
+  color: #687284;
+
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.split-login-domain {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  margin: 25px 0 16px;
+  padding: 12px 14px;
+
+  border: 1px solid #dbe7f4;
+  border-radius: 14px;
+
+  background: #f5f9fd;
+}
+
+.split-login-domain > span {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  place-items: center;
+
+  border-radius: 11px;
+
+  background: #e6f2ff;
+  color: #2e87dc;
+
+  font-size: 17px;
+  font-weight: 900;
+}
+
+.split-login-domain b,
+.split-login-domain small {
+  display: block;
+}
+
+.split-login-domain b {
+  color: #242b38;
+  font-size: 12px;
+}
+
+.split-login-domain small {
+  margin-top: 2px;
+  color: #768195;
+  font-size: 11px;
+}
+
+.split-google-button {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+
+  padding: 13px 18px;
+
+  border: 1px solid #d6dbe5;
+  border-radius: 12px;
+
+  background: #ffffff;
+  color: #262b35;
+
+  font-size: 14px;
+  font-weight: 800;
+
+  box-shadow:
+    0 9px 20px -14px rgba(20, 30, 60, 0.6);
+
+  cursor: pointer;
+
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.split-google-button:hover {
+  transform: translateY(-2px);
+
+  border-color: #8dbce8;
+
+  box-shadow:
+    0 16px 28px -17px rgba(20, 50, 100, 0.5);
+}
+
+.split-google-button:active {
+  transform: translateY(0);
+}
+
+.split-google-icon {
+  display: grid;
+  width: 27px;
+  height: 27px;
+  place-items: center;
+}
+
+.split-google-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.split-login-note {
+  display: block;
+
+  margin-top: 15px;
+
+  color: #8b93a1;
+
+  font-size: 10px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.split-login-error {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+
+  border: 1px solid #f2c2c2;
+  border-radius: 10px;
+
+  background: #fff2f2;
+  color: #a12d2d;
+
+  font-size: 12px;
+}
+
+.split-login-brand-panel {
+  position: relative;
+  isolation: isolate;
+
+  display: grid;
+  place-items: center;
+
+  padding: 55px 44px;
+
+  overflow: hidden;
+
+  background:
+    linear-gradient(
+      150deg,
+      #087f76 0%,
+      #075d76 43%,
+      #153979 100%
+    );
+}
+
+.split-login-brand-panel::before {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+
+  opacity: 0.26;
+
+  background-image:
+    linear-gradient(
+      rgba(255, 255, 255, 0.1) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.1) 1px,
+      transparent 1px
+    );
+
+  background-size: 38px 38px;
+}
+
+.split-login-brand-panel::after {
+  content: "";
+
+  position: absolute;
+  right: -120px;
+  bottom: -150px;
+  z-index: -1;
+
+  width: 390px;
+  height: 390px;
+
+  border-radius: 50%;
+
+  background: rgba(17, 211, 176, 0.22);
+  filter: blur(30px);
+}
+
+.split-login-brand-glow {
+  position: absolute;
+  top: -100px;
+  left: -90px;
+  z-index: -1;
+
+  width: 300px;
+  height: 300px;
+
+  border-radius: 50%;
+
+  background: rgba(66, 133, 244, 0.25);
+  filter: blur(35px);
+}
+
+.split-login-brand-content {
+  width: 100%;
+  max-width: 330px;
+
+  color: #ffffff;
+  text-align: center;
+}
+
+.split-login-logo-wrap {
+  display: grid;
+  width: 132px;
+  height: 132px;
+  place-items: center;
+
+  margin: 0 auto 24px;
+
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 50%;
+
+  background: rgba(255, 255, 255, 0.96);
+
+  box-shadow:
+    0 23px 45px -20px rgba(0, 0, 0, 0.5),
+    inset 0 0 0 8px rgba(27, 102, 160, 0.07);
+}
+
+.split-login-logo-wrap img {
+  width: 108px;
+  height: 108px;
+
+  object-fit: contain;
+}
+
+.split-login-brand-content > span {
+  display: block;
+
+  color: rgba(255, 255, 255, 0.78);
+
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.split-login-brand-content h2 {
+  margin: 9px 0 5px;
+
+  font-size: 38px;
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.split-login-brand-content > p {
+  margin: 0;
+
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 13px;
+}
+
+.split-login-brand-line {
+  width: 55px;
+  height: 3px;
+
+  margin: 22px auto;
+
+  border-radius: 999px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #ffffff,
+      #3de1c0
+    );
+}
+
+.split-login-brand-content > small {
+  display: block;
+
+  color: rgba(255, 255, 255, 0.67);
+
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+.split-login-loading {
+  display: grid;
+  width: min(100%, 390px);
+  min-height: 340px;
+  grid-template-columns: 1fr;
+  place-items: center;
+
+  padding: 40px;
+
+  color: #667184;
+  text-align: center;
+}
+
+.split-login-loading img {
+  width: 88px;
+  height: 88px;
+
+  object-fit: contain;
+}
+
+.split-login-loading p {
+  margin: 0;
+}
+
+.split-login-spinner {
+  width: 34px;
+  height: 34px;
+
+  border: 3px solid rgba(46, 155, 255, 0.2);
+  border-top-color: #2e9bff;
+  border-radius: 50%;
+
+  animation: split-login-spin 0.8s linear infinite;
+}
+
+@keyframes split-login-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.split-login-message-card {
+  display: flex;
+  width: min(100%, 470px);
+  min-height: 0;
+  flex-direction: column;
+  align-items: center;
+
+  padding: 38px;
+
+  color: #232936;
+  text-align: center;
+}
+
+.split-login-message-logo {
+  width: 82px;
+  height: 82px;
+
+  object-fit: contain;
+}
+
+.split-login-warning-icon {
+  display: grid;
+  width: 54px;
+  height: 54px;
+  place-items: center;
+
+  margin: 20px 0 12px;
+
+  border-radius: 50%;
+
+  background: #fff0f0;
+  color: #d74646;
+
+  font-size: 25px;
+  font-weight: 900;
+}
+
+.split-login-message-card h2 {
+  margin: 0 0 9px;
+}
+
+.split-login-message-card p {
+  margin: 0;
+
+  color: #687284;
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.split-login-signout {
+  width: 100%;
+
+  margin-top: 20px;
+  padding: 12px 15px;
+
+  border: 0;
+  border-radius: 11px;
+
+  background: #346fbe;
+  color: #ffffff;
+
+  font-size: 13px;
+  font-weight: 800;
+
+  cursor: pointer;
+}
+
+/* Logged-in employee area */
+
+.employee-portal-content {
+  width: min(100% - 30px, 1180px);
+  margin: 0 auto;
+  padding: 24px 0 60px;
+}
+
+.employee-portal-header {
+  margin-bottom: 18px;
+}
+
+.employee-portal-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.employee-portal-brand img {
+  width: 52px;
+  height: 52px;
+
+  padding: 2px;
+
+  object-fit: contain;
+
+  border-radius: 50%;
+  background: #ffffff;
+}
+
+.employee-portal-brand b,
+.employee-portal-brand span {
+  display: block;
+}
+
+.employee-portal-brand b {
+  font-size: 18px;
+}
+
+.employee-portal-brand span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.employee-account-card {
+  border-radius: 17px;
+}
+
+.employee-account-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.employee-account-avatar {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  place-items: center;
+
+  border-radius: 12px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #087f76,
+      #2e72ca
+    );
+
+  color: #ffffff;
+
+  font-size: 17px;
+  font-weight: 900;
+}
+
+@media (max-width: 760px) {
+  .split-login-page {
+    padding: 18px;
+  }
+
+  .split-login-card {
+    width: min(100%, 500px);
+    min-height: auto;
+
+    grid-template-columns: 1fr;
+
+    border-radius: 23px;
+  }
+
+  .split-login-google-panel {
+    order: 2;
+
+    padding: 35px 25px 38px;
+  }
+
+  .split-login-brand-panel {
+    order: 1;
+
+    padding: 34px 24px;
+  }
+
+  .split-login-logo-wrap {
+    width: 105px;
+    height: 105px;
+
+    margin-bottom: 18px;
+  }
+
+  .split-login-logo-wrap img {
+    width: 84px;
+    height: 84px;
+  }
+
+  .split-login-brand-content h2 {
+    font-size: 30px;
+  }
+
+  .split-login-brand-content > small {
+    display: none;
+  }
+
+  .split-login-brand-line {
+    margin: 15px auto;
+  }
+
+  .split-login-google-content h1 {
+    font-size: 36px;
+  }
+}
+
+@media (max-width: 460px) {
+  .split-login-page {
+    align-items: start;
+
+    padding: 12px;
+  }
+
+  .split-login-google-panel {
+    padding: 29px 18px 31px;
+  }
+
+  .split-login-brand-panel {
+    padding: 27px 18px;
+  }
+
+  .split-login-google-content h1 {
+    font-size: 31px;
+  }
+
+  .split-login-domain {
+    padding: 10px;
+  }
+
+  .split-google-button {
+    padding: 12px;
+  }
+
+  .employee-account-card {
+    align-items: stretch;
+  }
+
+  .employee-account-card .btn {
+    width: 100%;
+  }
+}
