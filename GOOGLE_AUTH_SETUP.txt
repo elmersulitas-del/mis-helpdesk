@@ -1,0 +1,40 @@
+GOOGLE WORKSPACE LOGIN SETUP (@immaculada.edu.ph)
+
+1. SUPABASE
+   Authentication > Providers > Google
+   - Enable Google
+   - Paste your Google Client ID and Client Secret
+
+2. GOOGLE CLOUD OAUTH CLIENT
+   Add this Authorized redirect URI:
+   https://YOUR_PROJECT_ID.supabase.co/auth/v1/callback
+
+3. SUPABASE URL CONFIGURATION
+   Authentication > URL Configuration
+   Site URL:
+   http://localhost:3000
+
+   Redirect URLs:
+   http://localhost:3000/**
+
+4. .ENV.LOCAL
+   Copy the values from the updated .env.example into your .env.local.
+
+   Get NEXT_PUBLIC_SUPABASE_ANON_KEY from:
+   Supabase > Settings > API Keys > Publishable key or anon key
+
+5. RESTART THE PROJECT
+   Stop the server with Ctrl+C, then run:
+   npm.cmd run dev
+
+6. TEST
+   Open http://localhost:3000
+   Sign in using an @immaculada.edu.ph Google Workspace account.
+
+CHANGES INCLUDED
+- Employee must sign in with Google before seeing the ticket form.
+- Only @immaculada.edu.ph Google accounts can submit tickets.
+- Full name and email are taken automatically from Google.
+- Full name and contact number fields were removed.
+- Problem description accepts one character/word or more.
+- MIS username/password login remains unchanged.

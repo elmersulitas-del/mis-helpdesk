@@ -1,0 +1,2 @@
+import { NextResponse } from 'next/server';import { makeSession,sessionCookie } from '@/lib/auth';
+export async function POST(req:Request){const {username,password}=await req.json();if(username!==process.env.MIS_ADMIN_USERNAME||password!==process.env.MIS_ADMIN_PASSWORD)return NextResponse.json({error:'Invalid username or password.'},{status:401});const res=NextResponse.json({ok:true});res.cookies.set(sessionCookie.name,makeSession(username),{httpOnly:true,secure:process.env.NODE_ENV==='production',sameSite:'lax',path:'/',maxAge:sessionCookie.maxAge});return res}
