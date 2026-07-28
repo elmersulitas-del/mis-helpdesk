@@ -416,22 +416,25 @@ export default function MisDashboard() {
         <main className="mis-content">
           {activeView === 'tickets' ? (
             <>
-              <section className="dashboard-hero no-print">
-                <p className="eyebrow">
-                  MIS service desk · live overview
-                </p>
+              <section className="operations-header no-print">
+                <div>
+                  <p className="eyebrow">
+                    MIS service desk
+                  </p>
+                  <h1>Helpdesk overview</h1>
+                  <p>
+                    Monitor incoming concerns, coordinate technicians,
+                    and keep employees updated from one workspace.
+                  </p>
+                </div>
 
-                <h1>
-                  Support requests,
-                  <br />
-                  clearly organized.
-                </h1>
-
-                <p>
-                  Receive institutional requests, assign technicians,
-                  record actions taken, and close concerns from one
-                  dashboard.
-                </p>
+                <div className="operations-health">
+                  <span>
+                    <i />
+                    System online
+                  </span>
+                  <small>Refreshing every 5 seconds</small>
+                </div>
               </section>
 
               <section className="metric-grid no-print">
@@ -547,11 +550,18 @@ export default function MisDashboard() {
                           </p>
                         </div>
 
-                        <span
-                          className={`status-pill status-pill--${ticket.status.toLowerCase()}`}
-                        >
-                          {statusText(ticket.status)}
-                        </span>
+                        <div className="ticket-badges">
+                          <span
+                            className={`priority-pill priority-pill--${ticket.priority.toLowerCase()}`}
+                          >
+                            {ticket.priority} priority
+                          </span>
+                          <span
+                            className={`status-pill status-pill--${ticket.status.toLowerCase()}`}
+                          >
+                            {statusText(ticket.status)}
+                          </span>
+                        </div>
                       </div>
 
                       <p className="ticket-description">
@@ -581,6 +591,14 @@ export default function MisDashboard() {
                           </dd>
                         </div>
                       </dl>
+
+                      <div className="ticket-requester">
+                        <span>Requester</span>
+                        <b>{ticket.reporter_name}</b>
+                        <small>
+                          {ticket.reporter_email || 'No email recorded'}
+                        </small>
+                      </div>
 
                       {ticket.resolution_notes && (
                         <div className="resolution-box">
