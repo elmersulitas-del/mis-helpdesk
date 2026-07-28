@@ -32,6 +32,10 @@ function statusText(status: TicketStatus) {
   return status.replaceAll('_', ' ');
 }
 
+function technicianLabel(ticket: Ticket) {
+  return ticket.assigned_to?.trim() || 'An MIS technician';
+}
+
 export default function ClientDashboard({
   session,
   fullName,
@@ -266,6 +270,74 @@ export default function ClientDashboard({
                   {statusText(selectedTicket.status)}
                 </span>
               </header>
+
+              <section
+                className={`client-status-update client-status-update--${selectedTicket.status.toLowerCase()}`}
+                role="status"
+              >
+                <div className="client-status-update-icon">
+                  {selectedTicket.status === 'RESOLVED' ? '✓' : 'i'}
+                </div>
+                <div>
+                  <span>Ticket status update</span>
+
+                  {selectedTicket.status === 'PENDING' && (
+                    <>
+                      <h2>Your request has been received.</h2>
+                      <p>
+                        Your concern is waiting for an available MIS
+                        technician. We will update this ticket once
+                        someone has been assigned.
+                      </p>
+                    </>
+                  )}
+
+                  {selectedTicket.status === 'ACCEPTED' && (
+                    <>
+                      <h2>Your concern has been accepted.</h2>
+                      <p>
+                        <b>{technicianLabel(selectedTicket)}</b> from
+                        the MIS team has been assigned to your request
+                        and is on the way. Please keep the area
+                        accessible.
+                      </p>
+                    </>
+                  )}
+
+                  {selectedTicket.status === 'IN_PROGRESS' && (
+                    <>
+                      <h2>Your concern is being handled.</h2>
+                      <p>
+                        <b>{technicianLabel(selectedTicket)}</b> is
+                        currently working on your request. You may send
+                        additional details through the conversation
+                        below.
+                      </p>
+                    </>
+                  )}
+
+                  {selectedTicket.status === 'RESOLVED' && (
+                    <>
+                      <h2>Your concern has been resolved.</h2>
+                      <p>
+                        The MIS team has completed this request. Review
+                        the resolution details below for the action
+                        taken.
+                      </p>
+                    </>
+                  )}
+
+                  {selectedTicket.status === 'CANCELLED' && (
+                    <>
+                      <h2>This request has been cancelled.</h2>
+                      <p>
+                        This ticket is now closed. Please submit a new
+                        support request if you still need assistance.
+                      </p>
+                    </>
+                  )}
+                </div>
+              </section>
 
               <section className="client-ticket-summary">
                 <div>
