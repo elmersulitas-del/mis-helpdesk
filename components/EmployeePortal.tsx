@@ -2,7 +2,7 @@
 
 import type { Session } from '@supabase/supabase-js';
 import { useEffect, useState } from 'react';
-import TicketForm from '@/components/TicketForm';
+import ClientDashboard from '@/components/ClientDashboard';
 import { getSupabaseBrowser } from '@/lib/supabase-browser';
 
 const allowedDomain = 'immaculada.edu.ph';
@@ -220,47 +220,11 @@ export default function EmployeePortal() {
     email.split('@')[0];
 
   return (
-    <section className="employee-portal-content">
-      <header className="employee-portal-header">
-        <div className="employee-portal-brand">
-          <img
-            src="/icclogo.png"
-            alt="Immaculada Concepcion College logo"
-          />
-
-          <div>
-            <b>MIS Helpdesk</b>
-            <span>School IT Support Request System</span>
-          </div>
-        </div>
-      </header>
-
-      <div className="card account-card employee-account-card">
-        <div className="employee-account-info">
-          <div className="employee-account-avatar">
-            {fullName.charAt(0).toUpperCase()}
-          </div>
-
-          <div>
-            <b>{fullName}</b>
-            <div className="muted">{email}</div>
-          </div>
-        </div>
-
-        <button
-          className="btn secondary"
-          type="button"
-          onClick={signOut}
-        >
-          Sign out
-        </button>
-      </div>
-
-      <TicketForm
-        session={session}
-        fullName={fullName}
-        email={email}
-      />
-    </section>
+    <ClientDashboard
+      session={session}
+      fullName={fullName}
+      email={email}
+      onSignOut={signOut}
+    />
   );
 }

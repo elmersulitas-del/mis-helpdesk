@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Ticket, TicketStatus } from '@/lib/types';
+import TicketConversation from '@/components/TicketConversation';
 
 type ThemeMode = 'light' | 'auto' | 'dark';
 
@@ -97,6 +98,9 @@ export default function MisDashboard() {
   const [reportMonth, setReportMonth] = useState(monthValue());
   const [activeView, setActiveView] = useState<'tickets' | 'reports'>(
     'tickets'
+  );
+  const [openConversation, setOpenConversation] = useState<string | null>(
+    null
   );
 
   const audio = useRef<HTMLAudioElement | null>(null);
@@ -586,6 +590,21 @@ export default function MisDashboard() {
                       )}
 
                       <div className="ticket-actions">
+                        <button
+                          type="button"
+                          className="ui-btn ui-btn--message"
+                          onClick={() =>
+                            setOpenConversation((current) =>
+                              current === ticket.id ? null : ticket.id
+                            )
+                          }
+                          aria-expanded={openConversation === ticket.id}
+                        >
+                          {openConversation === ticket.id
+                            ? 'Close conversation'
+                            : 'Open conversation'}
+                        </button>
+
                         {ticket.status === 'PENDING' && (
                           <button
                             type="button"
@@ -636,6 +655,14 @@ export default function MisDashboard() {
                             </button>
                           )}
                       </div>
+
+                      {openConversation === ticket.id && (
+                        <TicketConversation
+                          endpoint={`/api/tickets/${ticket.id}/messages`}
+                          status={ticket.status}
+                          audience="MIS"
+                        />
+                      )}
                     </article>
                   ))}
 

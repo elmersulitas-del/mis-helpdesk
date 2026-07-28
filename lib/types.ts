@@ -21,3 +21,13 @@ export type Ticket = {
   resolved_at: string | null;
   updated_at: string;
 };
+
+export type TicketMessage = {
+  id: string;
+  ticket_id: string;
+  sender_type: 'EMPLOYEE' | 'MIS';
+  sender_name: string;
+  sender_email: string | null;
+  message: string;
+  created_at: string;
+};
