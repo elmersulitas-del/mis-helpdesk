@@ -3764,6 +3764,307 @@ textarea {
   }
 }
 
+/* Full-width employee ticket workspace */
+
+.client-app {
+  font-size: 17px;
+}
+
+.client-layout {
+  grid-template-columns: 370px minmax(0, 1fr);
+}
+
+.client-content {
+  padding: 30px 34px 64px;
+}
+
+.client-new-request-view,
+.client-ticket-view {
+  width: 100%;
+  max-width: none;
+}
+
+.client-ticket-header {
+  margin-bottom: 22px;
+}
+
+.client-ticket-header h1 {
+  font-size: clamp(40px, 4vw, 54px);
+}
+
+.client-ticket-header p {
+  font-size: 15px;
+}
+
+.client-status-update {
+  padding: 20px 22px;
+}
+
+.client-status-update-icon {
+  width: 40px;
+  height: 40px;
+  flex-basis: 40px;
+  font-size: 19px;
+}
+
+.client-status-update span {
+  font-size: 13px;
+}
+
+.client-status-update h2 {
+  font-size: 22px;
+}
+
+.client-status-update p {
+  font-size: 17px;
+}
+
+.client-ticket-summary {
+  gap: 12px;
+}
+
+.client-ticket-summary div {
+  min-height: 76px;
+  padding: 16px 17px;
+}
+
+.client-ticket-summary span {
+  font-size: 13px;
+}
+
+.client-ticket-summary b {
+  margin-top: 6px;
+  font-size: 17px;
+}
+
+.client-concern-card,
+.client-resolution-card {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  align-items: start;
+  gap: 20px;
+  margin-bottom: 15px;
+  padding: 20px 22px;
+}
+
+.client-concern-card > span,
+.client-resolution-card > span {
+  padding-top: 2px;
+  font-size: 13px;
+}
+
+.client-concern-card p,
+.client-resolution-card p {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.65;
+}
+
+.ticket-conversation {
+  margin-top: 15px;
+  padding: 24px;
+}
+
+.conversation-heading {
+  margin-bottom: 18px;
+}
+
+.conversation-kicker {
+  font-size: 13px;
+}
+
+.conversation-heading h3 {
+  font-size: 22px;
+}
+
+.conversation-live {
+  font-size: 13px;
+}
+
+.conversation-thread {
+  min-height: 300px;
+  max-height: 500px;
+  gap: 15px;
+  padding: 22px;
+}
+
+.conversation-message {
+  max-width: min(82%, 720px);
+}
+
+.conversation-message-meta {
+  margin-bottom: 6px;
+}
+
+.conversation-message-meta b,
+.conversation-message-meta span {
+  font-size: 13px;
+}
+
+.conversation-message p {
+  padding: 14px 17px;
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+.conversation-empty span {
+  font-size: 30px;
+}
+
+.conversation-empty b {
+  font-size: 19px;
+}
+
+.conversation-empty p {
+  max-width: 520px;
+  font-size: 16px;
+}
+
+.conversation-composer {
+  margin-top: 16px;
+}
+
+.conversation-composer label {
+  margin-bottom: 9px;
+  font-size: 16px;
+}
+
+.conversation-composer textarea {
+  min-height: 130px;
+  padding: 15px 16px;
+  font-size: 17px;
+}
+
+.conversation-composer-footer > span {
+  font-size: 13px;
+}
+
+.conversation-composer-footer button {
+  min-height: 47px;
+  padding-inline: 18px;
+  font-size: 15px;
+}
+
+.client-sidebar-heading div > span {
+  font-size: 13px;
+}
+
+.client-sidebar-heading b {
+  font-size: 25px;
+}
+
+.client-active-count {
+  font-size: 12px;
+}
+
+.client-new-ticket {
+  min-height: 52px;
+  font-size: 15px;
+}
+
+.client-ticket-search input {
+  height: 50px;
+  font-size: 15px;
+}
+
+.client-ticket-item {
+  padding: 18px;
+}
+
+.client-ticket-item-top span {
+  font-size: 12px;
+}
+
+.client-ticket-item > b {
+  font-size: 18px;
+}
+
+.client-ticket-item p {
+  font-size: 14px;
+}
+
+.client-ticket-item time {
+  font-size: 13px;
+}
+
+@media (max-width: 1100px) {
+  .client-layout {
+    grid-template-columns: 320px minmax(0, 1fr);
+  }
+
+  .client-content {
+    padding-inline: 24px;
+  }
+
+  .client-ticket-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .client-app {
+    font-size: 16px;
+  }
+
+  .client-layout {
+    display: block;
+  }
+
+  .client-content {
+    padding: 25px 14px 55px;
+  }
+
+  .client-ticket-header h1 {
+    font-size: 38px;
+  }
+
+  .client-concern-card,
+  .client-resolution-card {
+    display: block;
+  }
+
+  .client-concern-card > span,
+  .client-resolution-card > span {
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  .conversation-thread {
+    min-height: 250px;
+    padding: 16px;
+  }
+}
+
+@media (max-width: 520px) {
+  .client-ticket-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .client-status-update {
+    padding: 17px;
+  }
+
+  .client-status-update h2 {
+    font-size: 20px;
+  }
+
+  .client-status-update p {
+    font-size: 16px;
+  }
+
+  .ticket-conversation {
+    padding: 17px;
+  }
+
+  .conversation-heading h3 {
+    font-size: 20px;
+  }
+
+  .conversation-message {
+    max-width: 92%;
+  }
+}
+
 /* =========================================================
    MIS STAFF LOGIN
    ========================================================= */
@@ -6016,5 +6317,315 @@ textarea {
 
   .conversation-composer-footer button {
     padding-inline: 11px;
+  }
+}
+
+/* FINAL EMPLOYEE WORKSPACE OVERRIDES — keep at end of file */
+
+.client-app {
+  font-size: 17px;
+}
+
+.client-layout {
+  grid-template-columns: 370px minmax(0, 1fr);
+}
+
+.client-content {
+  padding: 30px 34px 64px;
+}
+
+.client-new-request-view,
+.client-ticket-view {
+  width: 100%;
+  max-width: none;
+}
+
+.client-sidebar-heading div > span {
+  font-size: 13px;
+}
+
+.client-sidebar-heading b {
+  font-size: 25px;
+}
+
+.client-active-count {
+  font-size: 12px;
+}
+
+.client-new-ticket {
+  min-height: 52px;
+  font-size: 15px;
+}
+
+.client-ticket-search input {
+  height: 50px;
+  font-size: 15px;
+}
+
+.client-ticket-item {
+  padding: 18px;
+}
+
+.client-ticket-item-top span {
+  font-size: 12px;
+}
+
+.client-ticket-item > b {
+  font-size: 18px;
+}
+
+.client-ticket-item p {
+  font-size: 14px;
+}
+
+.client-ticket-item time {
+  font-size: 13px;
+}
+
+.client-ticket-header {
+  margin-bottom: 22px;
+}
+
+.client-ticket-header > div > span {
+  font-size: 13px;
+}
+
+.client-ticket-header h1 {
+  font-size: clamp(40px, 4vw, 54px);
+}
+
+.client-ticket-header p {
+  font-size: 15px;
+}
+
+.client-status-update {
+  padding: 20px 22px;
+}
+
+.client-status-update-icon {
+  width: 40px;
+  height: 40px;
+  flex-basis: 40px;
+  font-size: 19px;
+}
+
+.client-status-update span {
+  font-size: 13px;
+}
+
+.client-status-update h2 {
+  font-size: 22px;
+}
+
+.client-status-update p {
+  font-size: 17px;
+}
+
+.client-ticket-summary {
+  gap: 12px;
+}
+
+.client-ticket-summary div {
+  min-height: 76px;
+  padding: 16px 17px;
+}
+
+.client-ticket-summary span {
+  font-size: 13px;
+}
+
+.client-ticket-summary b {
+  margin-top: 6px;
+  font-size: 17px;
+}
+
+.client-concern-card,
+.client-resolution-card {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  align-items: start;
+  gap: 20px;
+  margin-bottom: 15px;
+  padding: 20px 22px;
+}
+
+.client-concern-card > span,
+.client-resolution-card > span {
+  padding-top: 2px;
+  font-size: 13px;
+}
+
+.client-concern-card p,
+.client-resolution-card p {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.65;
+}
+
+.ticket-conversation {
+  margin-top: 15px;
+  padding: 24px;
+}
+
+.conversation-heading {
+  margin-bottom: 18px;
+}
+
+.conversation-kicker {
+  font-size: 13px;
+}
+
+.conversation-heading h3 {
+  font-size: 22px;
+}
+
+.conversation-live {
+  font-size: 13px;
+}
+
+.conversation-thread {
+  min-height: 300px;
+  max-height: 500px;
+  gap: 15px;
+  padding: 22px;
+}
+
+.conversation-message {
+  max-width: min(82%, 720px);
+}
+
+.conversation-message-meta {
+  margin-bottom: 6px;
+}
+
+.conversation-message-meta b,
+.conversation-message-meta span {
+  font-size: 13px;
+}
+
+.conversation-message p {
+  padding: 14px 17px;
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+.conversation-state,
+.conversation-empty {
+  font-size: 15px;
+}
+
+.conversation-empty span {
+  font-size: 30px;
+}
+
+.conversation-empty b {
+  font-size: 19px;
+}
+
+.conversation-empty p {
+  max-width: 520px;
+  font-size: 16px;
+}
+
+.conversation-composer {
+  margin-top: 16px;
+}
+
+.conversation-composer label {
+  margin-bottom: 9px;
+  font-size: 16px;
+}
+
+.conversation-composer textarea {
+  min-height: 130px;
+  padding: 15px 16px;
+  font-size: 17px;
+}
+
+.conversation-composer-footer > span {
+  font-size: 13px;
+}
+
+.conversation-composer-footer button {
+  min-height: 47px;
+  padding-inline: 18px;
+  font-size: 15px;
+}
+
+@media (max-width: 1100px) {
+  .client-layout {
+    grid-template-columns: 320px minmax(0, 1fr);
+  }
+
+  .client-content {
+    padding-inline: 24px;
+  }
+
+  .client-ticket-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .client-app {
+    font-size: 16px;
+  }
+
+  .client-layout {
+    display: block;
+  }
+
+  .client-content {
+    padding: 25px 14px 55px;
+  }
+
+  .client-ticket-header h1 {
+    font-size: 38px;
+  }
+
+  .client-concern-card,
+  .client-resolution-card {
+    display: block;
+  }
+
+  .client-concern-card > span,
+  .client-resolution-card > span {
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  .conversation-thread {
+    min-height: 250px;
+    padding: 16px;
+  }
+}
+
+@media (max-width: 520px) {
+  .client-ticket-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .client-status-update {
+    padding: 17px;
+  }
+
+  .client-status-update h2 {
+    font-size: 20px;
+  }
+
+  .client-status-update p {
+    font-size: 16px;
+  }
+
+  .ticket-conversation {
+    padding: 17px;
+  }
+
+  .conversation-heading h3 {
+    font-size: 20px;
+  }
+
+  .conversation-message {
+    max-width: 92%;
   }
 }
