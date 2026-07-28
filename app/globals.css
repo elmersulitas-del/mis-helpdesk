@@ -3270,6 +3270,194 @@ textarea {
   }
 }
 
+/* Ticket queue navigation and pagination */
+
+.queue-nav {
+  display: grid;
+  gap: 3px;
+  margin: 5px 0 18px;
+  padding-left: 12px;
+  border-left: 1px solid var(--line);
+}
+
+.queue-nav button {
+  display: flex;
+  width: 100%;
+  min-height: 38px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.queue-nav button > span {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+}
+
+.queue-nav button > b {
+  min-width: 25px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--muted);
+  font-size: 10px;
+  text-align: center;
+}
+
+.queue-nav button:hover {
+  background: var(--surface-2);
+  color: var(--ink);
+}
+
+.queue-nav button.is-active {
+  background: color-mix(
+    in oklab,
+    var(--a2) 10%,
+    var(--surface)
+  );
+  color: var(--ink);
+}
+
+.queue-nav button.is-active > b {
+  background: color-mix(
+    in oklab,
+    var(--a2) 16%,
+    var(--surface)
+  );
+  color: var(--a2);
+}
+
+.queue-dot {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 7px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+
+.queue-dot--active {
+  background: var(--a2);
+  box-shadow: 0 0 0 3px
+    color-mix(in oklab, var(--a2) 13%, transparent);
+}
+
+.queue-dot--resolved {
+  background: var(--ok);
+}
+
+.queue-dot--cancelled {
+  background: var(--danger);
+}
+
+.metric-card {
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.metric-card:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(
+    in oklab,
+    var(--a2) 38%,
+    var(--line)
+  );
+  box-shadow: var(--shadow-lg);
+}
+
+.metric-card:focus-visible {
+  outline-offset: 3px;
+}
+
+.queue-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line-soft);
+}
+
+.queue-pagination > span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.queue-pagination > div {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.queue-pagination b {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.queue-pagination button {
+  min-height: 35px;
+  padding: 7px 11px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.queue-pagination button:hover:not(:disabled) {
+  border-color: color-mix(
+    in oklab,
+    var(--a2) 42%,
+    var(--line)
+  );
+  background: var(--surface-2);
+}
+
+.queue-pagination button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+@media (max-width: 760px) {
+  .mis-page .queue-nav {
+    display: flex;
+    min-width: max-content;
+    margin: 0;
+    padding: 0;
+    border-left: 0;
+  }
+
+  .mis-page .queue-nav button {
+    width: auto;
+    min-width: max-content;
+  }
+}
+
+@media (max-width: 560px) {
+  .queue-pagination {
+    display: grid;
+  }
+
+  .queue-pagination > div {
+    justify-content: space-between;
+  }
+}
+
 /* =========================================================
    MIS STAFF LOGIN
    ========================================================= */

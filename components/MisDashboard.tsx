@@ -5,6 +5,9 @@ import type { Ticket, TicketStatus } from '@/lib/types';
 import TicketConversation from '@/components/TicketConversation';
 
 type ThemeMode = 'light' | 'auto' | 'dark';
+type QueueView = 'ACTIVE' | 'ALL' | 'RESOLVED' | 'CANCELLED';
+
+const PAGE_SIZE = 10;
 
 const STATUS_OPTIONS: Array<'ALL' | TicketStatus> = [
   'ALL',
@@ -99,6 +102,8 @@ export default function MisDashboard() {
   const [activeView, setActiveView] = useState<'tickets' | 'reports'>(
     'tickets'
   );
+  const [queueView, setQueueView] = useState<QueueView>('ACTIVE');
+  const [page, setPage] = useState(1);
   const [openConversation, setOpenConversation] = useState<string | null>(
     null
   );
@@ -267,6 +272,12 @@ export default function MisDashboard() {
     const needle = search.trim().toLowerCase();
 
     return tickets.filter((ticket) => {
+      const matchesQueue =
+        queueView === 'ALL' ||
+        (queueView === 'ACTIVE' &&
+          ticket.status !== 'RESOLVED' &&
+          ticket.status !== 'CANCELLED') ||
+        ticket.status === queueView;
       const matchesStatus =
         filter === 'ALL' || ticket.status === filter;
 
@@ -280,9 +291,32 @@ export default function MisDashboard() {
         ${ticket.description}
       `.toLowerCase();
 
-      return matchesStatus && (!needle || haystack.includes(needle));
+      return (
+        matchesQueue &&
+        matchesStatus &&
+        (!needle || haystack.includes(needle))
+      );
     });
-  }, [tickets, filter, search]);
+  }, [tickets, filter, search, queueView]);
+
+  const pageCount = Math.max(
+    1,
+    Math.ceil(visibleTickets.length / PAGE_SIZE)
+  );
+  const currentPage = Math.min(page, pageCount);
+  const pagedTickets = visibleTickets.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE
+  );
+
+  useEffect(() => {
+    setPage(1);
+    setOpenConversation(null);
+  }, [queueView, filter, search]);
+
+  useEffect(() => {
+    setPage((current) => Math.min(current, pageCount));
+  }, [pageCount]);
 
   const monthlyAccomplishments = useMemo(() => {
     return tickets
@@ -314,6 +348,39 @@ export default function MisDashboard() {
 
   const count = (status: TicketStatus) =>
     tickets.filter((ticket) => ticket.status === status).length;
+
+  const activeTicketCount = tickets.filter(
+    (ticket) =>
+      ticket.status !== 'RESOLVED' &&
+      ticket.status !== 'CANCELLED'
+  ).length;
+
+  const queueTitle = {
+    ACTIVE: 'Active support requests',
+    ALL: 'All support requests',
+    RESOLVED: 'Resolved tickets',
+    CANCELLED: 'Cancelled tickets',
+  }[queueView];
+
+  function openQueue(view: QueueView) {
+    setActiveView('tickets');
+    setQueueView(view);
+    setFilter('ALL');
+  }
+
+  function filterByStatus(status: 'ALL' | TicketStatus) {
+    setFilter(status);
+
+    if (status === 'RESOLVED') {
+      setQueueView('RESOLVED');
+    } else if (status === 'CANCELLED') {
+      setQueueView('CANCELLED');
+    } else if (status === 'ALL') {
+      setQueueView('ALL');
+    } else {
+      setQueueView('ACTIVE');
+    }
+  }
 
   return (
     <div className="mis-app">
@@ -386,11 +453,77 @@ export default function MisDashboard() {
             className={`side-link ${
               activeView === 'tickets' ? 'is-active' : ''
             }`}
-            onClick={() => setActiveView('tickets')}
+            onClick={() => openQueue('ALL')}
           >
             <span>Tickets</span>
             <b>{tickets.length}</b>
           </button>
+
+          <nav className="queue-nav" aria-label="Ticket queues">
+            <button
+              type="button"
+              className={
+                activeView === 'tickets' && queueView === 'ACTIVE'
+                  ? 'is-active'
+                  : ''
+              }
+              onClick={() => openQueue('ACTIVE')}
+            >
+              <span>
+                <i className="queue-dot queue-dot--active" />
+                Active tickets
+              </span>
+              <b>{activeTicketCount}</b>
+            </button>
+
+            <button
+              type="button"
+              className={
+                activeView === 'tickets' && queueView === 'ALL'
+                  ? 'is-active'
+                  : ''
+              }
+              onClick={() => openQueue('ALL')}
+            >
+              <span>
+                <i className="queue-dot queue-dot--all" />
+                All tickets
+              </span>
+              <b>{tickets.length}</b>
+            </button>
+
+            <button
+              type="button"
+              className={
+                activeView === 'tickets' && queueView === 'RESOLVED'
+                  ? 'is-active'
+                  : ''
+              }
+              onClick={() => openQueue('RESOLVED')}
+            >
+              <span>
+                <i className="queue-dot queue-dot--resolved" />
+                Resolved
+              </span>
+              <b>{count('RESOLVED')}</b>
+            </button>
+
+            <button
+              type="button"
+              className={
+                activeView === 'tickets' && queueView === 'CANCELLED'
+                  ? 'is-active'
+                  : ''
+              }
+              onClick={() => openQueue('CANCELLED')}
+            >
+              <span>
+                <i className="queue-dot queue-dot--cancelled" />
+                Cancelled
+              </span>
+              <b>{count('CANCELLED')}</b>
+            </button>
+          </nav>
 
           <button
             type="button"
@@ -438,36 +571,64 @@ export default function MisDashboard() {
               </section>
 
               <section className="metric-grid no-print">
-                <article className="metric-card metric-card--feature">
+                <button
+                  type="button"
+                  className="metric-card metric-card--feature"
+                  onClick={() => {
+                    setQueueView('ACTIVE');
+                    setFilter('PENDING');
+                  }}
+                >
                   <span>Pending</span>
                   <b>{count('PENDING')}</b>
                   <small>Needs attention</small>
-                </article>
+                </button>
 
-                <article className="metric-card">
+                <button
+                  type="button"
+                  className="metric-card"
+                  onClick={() => {
+                    setQueueView('ACTIVE');
+                    setFilter('ACCEPTED');
+                  }}
+                >
                   <span>Accepted</span>
                   <b>{count('ACCEPTED')}</b>
                   <small>Technician assigned</small>
-                </article>
+                </button>
 
-                <article className="metric-card">
+                <button
+                  type="button"
+                  className="metric-card"
+                  onClick={() => {
+                    setQueueView('ACTIVE');
+                    setFilter('IN_PROGRESS');
+                  }}
+                >
                   <span>In progress</span>
                   <b>{count('IN_PROGRESS')}</b>
                   <small>Currently being handled</small>
-                </article>
+                </button>
 
-                <article className="metric-card">
+                <button
+                  type="button"
+                  className="metric-card"
+                  onClick={() => {
+                    setQueueView('RESOLVED');
+                    setFilter('ALL');
+                  }}
+                >
                   <span>Resolved</span>
                   <b>{count('RESOLVED')}</b>
                   <small>Total accomplishments</small>
-                </article>
+                </button>
               </section>
 
               <section className="panel no-print">
                 <div className="panel-head">
                   <div>
                     <p className="panel-kicker">Ticket queue</p>
-                    <h2>All support requests</h2>
+                    <h2>{queueTitle}</h2>
                   </div>
 
                   <span className="result-count">
@@ -490,10 +651,8 @@ export default function MisDashboard() {
                     aria-label="Filter by status"
                     value={filter}
                     onChange={(event) =>
-                      setFilter(
-                        event.target.value as
-                          | 'ALL'
-                          | TicketStatus
+                      filterByStatus(
+                        event.target.value as 'ALL' | TicketStatus
                       )
                     }
                   >
@@ -530,7 +689,7 @@ export default function MisDashboard() {
                 </div>
 
                 <div className="ticket-list">
-                  {visibleTickets.map((ticket) => (
+                  {pagedTickets.map((ticket) => (
                     <article
                       className="ticket-card"
                       key={ticket.id}
@@ -686,13 +845,55 @@ export default function MisDashboard() {
 
                   {!visibleTickets.length && (
                     <div className="empty-state">
-                      <b>No tickets found</b>
+                      <b>No {queueTitle.toLowerCase()} found</b>
                       <span>
                         Try a different search or status filter.
                       </span>
                     </div>
                   )}
                 </div>
+
+                {visibleTickets.length > 0 && (
+                  <div className="queue-pagination">
+                    <span>
+                      Showing{' '}
+                      {(currentPage - 1) * PAGE_SIZE + 1}–
+                      {Math.min(
+                        currentPage * PAGE_SIZE,
+                        visibleTickets.length
+                      )}{' '}
+                      of {visibleTickets.length}
+                    </span>
+
+                    <div>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setPage((current) =>
+                            Math.max(1, current - 1)
+                          )
+                        }
+                        disabled={currentPage === 1}
+                      >
+                        Previous
+                      </button>
+                      <b>
+                        Page {currentPage} of {pageCount}
+                      </b>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setPage((current) =>
+                            Math.min(pageCount, current + 1)
+                          )
+                        }
+                        disabled={currentPage === pageCount}
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </div>
+                )}
               </section>
             </>
           ) : (
