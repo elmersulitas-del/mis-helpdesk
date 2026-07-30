@@ -1,4 +1,118 @@
 /* Installable employee PWA */
+.pwa-install-trigger {
+  position: fixed;
+  right: max(18px, env(safe-area-inset-right));
+  bottom: max(18px, env(safe-area-inset-bottom));
+  z-index: 980;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 48px;
+  padding: 0 18px;
+  color: #fff;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 850;
+  cursor: pointer;
+  background: #087f76;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 999px;
+  box-shadow: 0 12px 32px rgba(8, 127, 118, 0.28);
+}
+
+.pwa-install-trigger:hover {
+  background: #066a63;
+  transform: translateY(-1px);
+}
+
+.pwa-install-trigger svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+.pwa-install-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: grid;
+  padding: 22px;
+  place-items: center;
+  background: rgba(8, 22, 36, 0.58);
+  backdrop-filter: blur(5px);
+}
+
+.pwa-install-dialog {
+  width: min(430px, 100%);
+  padding: 30px;
+  color: #102a43;
+  text-align: center;
+  background: #fff;
+  border: 1px solid #d4e0e9;
+  border-radius: 24px;
+  box-shadow: 0 24px 70px rgba(8, 22, 36, 0.3);
+}
+
+.pwa-install-dialog-logo {
+  display: grid;
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 16px;
+  padding: 7px;
+  place-items: center;
+  background: #f6f9fb;
+  border: 1px solid #dbe5ec;
+  border-radius: 20px;
+}
+
+.pwa-install-dialog-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.pwa-install-dialog > span {
+  color: #087f76;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+}
+
+.pwa-install-dialog h2 {
+  margin: 8px 0 12px;
+  color: #102a43;
+  font-size: 27px;
+}
+
+.pwa-install-dialog p {
+  margin: 0;
+  color: #526d82;
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+.pwa-install-dialog-close {
+  width: 100%;
+  min-height: 46px;
+  margin-top: 22px;
+  color: #fff;
+  font: inherit;
+  font-weight: 850;
+  cursor: pointer;
+  background: #087f76;
+  border: 0;
+  border-radius: 12px;
+}
+
+.pwa-install-dialog-close:hover {
+  background: #066a63;
+}
+
 .pwa-install-card {
   position: fixed;
   right: max(18px, env(safe-area-inset-right));
@@ -147,6 +261,17 @@
 }
 
 @media (max-width: 640px) {
+  .pwa-install-trigger {
+    right: max(14px, env(safe-area-inset-right));
+    bottom: max(14px, env(safe-area-inset-bottom));
+    min-height: 46px;
+    padding-inline: 16px;
+  }
+
+  .pwa-install-dialog {
+    padding: 26px 20px;
+  }
+
   .pwa-install-card {
     grid-template-columns: 46px minmax(0, 1fr) 32px;
     gap: 11px;

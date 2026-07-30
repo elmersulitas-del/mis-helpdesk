@@ -7,8 +7,6 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
 }
 
-const DISMISSED_KEY = 'mis-pwa-install-dismissed';
-
 function isStandalone() {
   return (
     window.matchMedia('(display-mode: standalone)').matches ||
@@ -21,6 +19,7 @@ export default function PwaInstaller() {
   const [installPrompt, setInstallPrompt] =
     useState<BeforeInstallPromptEvent | null>(null);
   const [showIosHelp, setShowIosHelp] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(false);
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -35,14 +34,9 @@ export default function PwaInstaller() {
 
     if (isStandalone()) return;
 
-    const dismissed = window.localStorage.getItem(DISMISSED_KEY);
-    if (dismissed) return;
-
     const ios = /iphone|ipad|ipod/i.test(window.navigator.userAgent);
-    if (ios) {
-      setShowIosHelp(true);
-      setVisible(true);
-    }
+    setShowIosHelp(ios);
+    setVisible(true);
 
     const handleBeforeInstall = (event: Event) => {
       event.preventDefault();
@@ -64,13 +58,11 @@ export default function PwaInstaller() {
     };
   }, []);
 
-  const dismiss = () => {
-    window.localStorage.setItem(DISMISSED_KEY, 'true');
-    setVisible(false);
-  };
-
   const install = async () => {
-    if (!installPrompt) return;
+    if (!installPrompt) {
+      setShowInstructions(true);
+      return;
+    }
 
     await installPrompt.prompt();
     const choice = await installPrompt.userChoice;
@@ -81,34 +73,63 @@ export default function PwaInstaller() {
   if (!visible) return null;
 
   return (
-    <aside className="pwa-install-card" aria-label="Install MIS Helpdesk app">
-      <div className="pwa-install-icon" aria-hidden="true">
-        <img src="/icclogo.png" alt="" />
-      </div>
-      <div className="pwa-install-copy">
-        <strong>Install MIS Helpdesk</strong>
-        {showIosHelp ? (
-          <p>
-            For faster access, tap <b>Share</b>, then choose{' '}
-            <b>Add to Home Screen</b>.
-          </p>
-        ) : (
-          <p>Open the employee portal directly from your phone&apos;s home screen.</p>
-        )}
-      </div>
-      {installPrompt && (
-        <button className="pwa-install-button" type="button" onClick={install}>
-          Install app
-        </button>
-      )}
+    <>
       <button
-        className="pwa-install-close"
+        className="pwa-install-trigger"
         type="button"
-        aria-label="Dismiss install suggestion"
-        onClick={dismiss}
+        onClick={install}
+        aria-haspopup={!installPrompt ? 'dialog' : undefined}
       >
-        ×
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 3v11" />
+          <path d="m7 10 5 5 5-5" />
+          <path d="M5 20h14" />
+        </svg>
+        Install app
       </button>
-    </aside>
+
+      {showInstructions && (
+        <div
+          className="pwa-install-overlay"
+          role="presentation"
+          onClick={() => setShowInstructions(false)}
+        >
+          <section
+            className="pwa-install-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="pwa-install-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="pwa-install-dialog-logo">
+              <img src="/icclogo.png" alt="" />
+            </div>
+
+            <span>MIS HELPDESK</span>
+            <h2 id="pwa-install-title">Install the employee app</h2>
+
+            {showIosHelp ? (
+              <p>
+                In Safari, tap the <b>Share</b> button, then choose{' '}
+                <b>Add to Home Screen</b>.
+              </p>
+            ) : (
+              <p>
+                Open your browser menu <b>⋮</b>, then choose <b>Install app</b>{' '}
+                or <b>Add to Home screen</b>.
+              </p>
+            )}
+
+            <button
+              className="pwa-install-dialog-close"
+              type="button"
+              onClick={() => setShowInstructions(false)}
+            >
+              Got it
+            </button>
+          </section>
+        </div>
+      )}
+    </>
   );
 }
