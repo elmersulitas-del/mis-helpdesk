@@ -10,15 +10,10 @@ type Props = {
   session: Session;
   fullName: string;
   email: string;
-  onSubmitted?: () => void;
+  onSubmitted?: () => void | Promise<void>;
 };
 
-export default function TicketForm({
-  session,
-  fullName,
-  email,
-  onSubmitted,
-}: Props) {
+export default function TicketForm({ session, fullName, email, onSubmitted }: Props) {
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<{ticket_number:string;tracking_url:string} | null>(null);
   const [error, setError] = useState('');
@@ -47,13 +42,13 @@ export default function TicketForm({
     }
 
     setResult(json);
-    onSubmitted?.();
     e.currentTarget.reset();
+    await onSubmitted?.();
   }
 
   if (result) {
     return (
-      <div className="card client-request-card client-request-success">
+      <div className="card">
         <h2>Request submitted</h2>
         <div className="notice successbox">
           <b>Ticket: {result.ticket_number}</b><br />Please save your tracking link.
@@ -65,7 +60,7 @@ export default function TicketForm({
   }
 
   return (
-    <form className="card client-request-card" onSubmit={submit}>
+    <form className="card" onSubmit={submit}>
       <h2>Request MIS Support</h2>
       <p className="muted">Your name and institutional email are taken automatically from your Google account.</p>
       <div className="notice">
