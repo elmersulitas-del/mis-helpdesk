@@ -9,6 +9,7 @@ import {
 } from 'react';
 import TicketConversation from '@/components/TicketConversation';
 import TicketForm from '@/components/TicketForm';
+import PwaInstaller from '@/components/PwaInstaller';
 import type { Ticket, TicketStatus } from '@/lib/types';
 
 type Props = {
@@ -44,7 +45,7 @@ export default function ClientDashboard({
 }: Props) {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [view, setView] = useState<'NEW' | 'TICKET'>('NEW');
+  const [view, setView] = useState<'NEW' | 'HISTORY' | 'TICKET'>('NEW');
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -130,6 +131,7 @@ export default function ClientDashboard({
         </div>
 
         <div className="client-user-menu">
+          <PwaInstaller />
           <span className="client-avatar">
             {fullName.charAt(0).toUpperCase()}
           </span>
@@ -143,8 +145,36 @@ export default function ClientDashboard({
         </div>
       </header>
 
+      <nav className="client-mobile-nav" aria-label="Employee portal">
+        <button
+          className={view === 'NEW' ? 'is-active' : ''}
+          type="button"
+          onClick={() => setView('NEW')}
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+          New request
+        </button>
+        <button
+          className={view !== 'NEW' ? 'is-active' : ''}
+          type="button"
+          onClick={() => setView('HISTORY')}
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 6h16M4 12h16M4 18h10" />
+          </svg>
+          My tickets
+          <span>{tickets.length}</span>
+        </button>
+      </nav>
+
       <div className="client-layout">
-        <aside className="client-sidebar">
+        <aside
+          className={`client-sidebar ${
+            view === 'HISTORY' ? 'is-mobile-visible' : ''
+          }`}
+        >
           <div className="client-sidebar-heading">
             <div>
               <span>Your requests</span>
@@ -155,16 +185,18 @@ export default function ClientDashboard({
             </span>
           </div>
 
-          <button
-            className="client-new-ticket"
-            type="button"
-            onClick={() => setView('NEW')}
-          >
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M12 5v14M5 12h14" />
-            </svg>
-            New support request
-          </button>
+          {view !== 'NEW' && (
+            <button
+              className="client-new-ticket"
+              type="button"
+              onClick={() => setView('NEW')}
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+              New support request
+            </button>
+          )}
 
           <div className="client-ticket-search">
             <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -218,7 +250,11 @@ export default function ClientDashboard({
           </div>
         </aside>
 
-        <main className="client-content">
+        <main
+          className={`client-content ${
+            view === 'HISTORY' ? 'is-mobile-hidden' : ''
+          }`}
+        >
           {error && (
             <div className="client-page-error" role="alert">
               {error}
@@ -251,9 +287,9 @@ export default function ClientDashboard({
               <button
                 className="client-mobile-back"
                 type="button"
-                onClick={() => setView('NEW')}
+                onClick={() => setView('HISTORY')}
               >
-                ← Back to requests
+                ← Back to my tickets
               </button>
 
               <header className="client-ticket-header">

@@ -21,6 +21,21 @@
   box-shadow: 0 12px 32px rgba(8, 127, 118, 0.28);
 }
 
+.client-user-menu .pwa-install-trigger {
+  position: static;
+  min-height: 42px;
+  padding-inline: 14px;
+  color: #087f76;
+  background: #e6f4f2;
+  border-color: #c7e5e1;
+  box-shadow: none;
+}
+
+.client-user-menu .pwa-install-trigger:hover {
+  color: #fff;
+  background: #087f76;
+}
+
 .pwa-install-trigger:hover {
   background: #066a63;
   transform: translateY(-1px);
@@ -261,6 +276,12 @@
 }
 
 @media (max-width: 640px) {
+  .client-user-menu .pwa-install-trigger {
+    min-height: 40px;
+    padding-inline: 11px;
+    font-size: 13px;
+  }
+
   .pwa-install-trigger {
     right: max(14px, env(safe-area-inset-right));
     bottom: max(14px, env(safe-area-inset-bottom));
