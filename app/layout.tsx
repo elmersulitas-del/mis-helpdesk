@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from 'next';
-import './globals.css';
+import './client-complete.css';
+import './system-fixes.css';
+import './pwa.css';
 
 export const metadata: Metadata = {
   title: {

@@ -1,0 +1,28 @@
+/* Cross-page fixes verified during the full portal audit. */
+.tickethead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.tickethead h2 {
+  margin: 0 0 5px;
+  overflow-wrap: anywhere;
+}
+
+.queue-dot--all {
+  background: var(--muted);
+}
+
+@media (max-width: 640px) {
+  .tickethead {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .tickethead .badge {
+    align-self: flex-start;
+  }
+}

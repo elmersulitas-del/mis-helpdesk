@@ -1,4 +1,4 @@
-const CACHE_NAME = 'icc-mis-helpdesk-v1';
+const CACHE_NAME = 'icc-mis-helpdesk-v2';
 const OFFLINE_ASSETS = ['/offline', '/icclogo.png'];
 
 self.addEventListener('install', (event) => {

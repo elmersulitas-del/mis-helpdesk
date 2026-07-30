@@ -25,9 +25,12 @@ export default function PwaInstaller() {
 
   useEffect(() => {
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(() => {
-        // The portal remains fully usable in the browser if registration fails.
-      });
+      navigator.serviceWorker
+        .register('/sw.js', { updateViaCache: 'none' })
+        .then((registration) => registration.update())
+        .catch(() => {
+          // The portal remains fully usable in the browser if registration fails.
+        });
     }
 
     if (isStandalone()) return;
