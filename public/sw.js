@@ -1,4 +1,4 @@
-const CACHE_NAME = 'icc-mis-helpdesk-v2';
+const CACHE_NAME = 'icc-mis-helpdesk-v3';
 const OFFLINE_ASSETS = ['/offline', '/icclogo.png'];
 
 self.addEventListener('install', (event) => {
@@ -64,4 +64,58 @@ self.addEventListener('fetch', (event) => {
       ),
     );
   }
+});
+
+self.addEventListener('push', (event) => {
+  const fallback = {
+    title: 'New MIS support request',
+    body: 'A new support ticket needs attention.',
+    tag: 'mis-new-ticket',
+    url: '/mis',
+  };
+
+  let data = fallback;
+  try {
+    data = event.data ? { ...fallback, ...event.data.json() } : fallback;
+  } catch {
+    data = fallback;
+  }
+
+  event.waitUntil(
+    self.registration.showNotification(data.title, {
+      body: data.body,
+      icon: '/icclogo.png',
+      badge: '/icclogo.png',
+      tag: data.tag,
+      renotify: true,
+      requireInteraction: true,
+      vibrate: [250, 120, 250, 120, 400],
+      data: { url: data.url || '/mis' },
+    }),
+  );
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const targetUrl = new URL(
+    event.notification.data?.url || '/mis',
+    self.location.origin,
+  ).href;
+
+  event.waitUntil(
+    self.clients
+      .matchAll({ type: 'window', includeUncontrolled: true })
+      .then((clients) => {
+        const existing = clients.find(
+          (client) => new URL(client.url).origin === self.location.origin,
+        );
+
+        if (existing) {
+          existing.navigate(targetUrl);
+          return existing.focus();
+        }
+
+        return self.clients.openWindow(targetUrl);
+      }),
+  );
 });

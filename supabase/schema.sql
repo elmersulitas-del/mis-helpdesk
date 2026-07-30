@@ -47,12 +47,25 @@ create table if not exists public.ticket_messages (
   created_at timestamptz not null default now()
 );
 
+create table if not exists public.mis_push_subscriptions (
+  id uuid primary key default gen_random_uuid(),
+  endpoint text unique not null,
+  p256dh text not null,
+  auth text not null,
+  user_agent text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 alter table public.tickets enable row level security;
 alter table public.ticket_updates enable row level security;
 alter table public.ticket_messages enable row level security;
+alter table public.mis_push_subscriptions enable row level security;
 -- No anon policies are intentionally created. All access goes through protected Next.js server routes using SUPABASE_SECRET_KEY.
 
 create index if not exists tickets_status_created_idx on public.tickets(status, created_at desc);
 create index if not exists tickets_public_token_idx on public.tickets(public_token);
 create index if not exists ticket_messages_ticket_created_idx
   on public.ticket_messages(ticket_id, created_at);
+create index if not exists mis_push_subscriptions_updated_idx
+  on public.mis_push_subscriptions(updated_at desc);

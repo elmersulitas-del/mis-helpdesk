@@ -3,6 +3,7 @@ import { randomBytes } from 'crypto';
 import { z } from 'zod';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
 import { isMisAuthenticated } from '@/lib/auth';
+import { sendNewTicketPush } from '@/lib/push-notifications';
 
 const ALLOWED_DOMAIN = process.env.ALLOWED_GOOGLE_DOMAIN || 'immaculada.edu.ph';
 
@@ -69,10 +70,14 @@ export async function POST(req: Request) {
         public_token,
         ticket_number,
       })
-      .select('ticket_number,public_token')
+      .select('id,ticket_number,public_token,department,subject')
       .single();
 
     if (error) throw error;
+
+    await sendNewTicketPush(data).catch((pushError) => {
+      console.error('New-ticket push notification failed:', pushError);
+    });
 
     const base = process.env.NEXT_PUBLIC_APP_URL || new URL(req.url).origin;
     return NextResponse.json({

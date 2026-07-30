@@ -57,6 +57,21 @@ function playDefault(volume = 1) {
   });
 }
 
+function urlBase64ToUint8Array(value: string) {
+  const padding = '='.repeat((4 - (value.length % 4)) % 4);
+  const base64 = (value + padding)
+    .replaceAll('-', '+')
+    .replaceAll('_', '/');
+  const raw = window.atob(base64);
+  const output = new Uint8Array(raw.length);
+
+  for (let index = 0; index < raw.length; index += 1) {
+    output[index] = raw.charCodeAt(index);
+  }
+
+  return output;
+}
+
 function monthValue(date = new Date()) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
     2,
@@ -107,6 +122,8 @@ export default function MisDashboard() {
   const [openConversation, setOpenConversation] = useState<string | null>(
     null
   );
+  const [alertsEnabled, setAlertsEnabled] = useState(false);
+  const [alertSetupBusy, setAlertSetupBusy] = useState(false);
 
   const audio = useRef<HTMLAudioElement | null>(null);
   const known = useRef(new Set<string>());
@@ -156,12 +173,25 @@ export default function MisDashboard() {
               });
 
             if (
+              !alertsEnabled &&
               'Notification' in window &&
               Notification.permission === 'granted'
             ) {
-              new Notification('New MIS support request', {
-                body: `${fresh[0].department}: ${fresh[0].subject}`,
-              });
+              navigator.serviceWorker?.ready
+                .then((registration) =>
+                  registration.showNotification(
+                    'New MIS support request',
+                    {
+                      body: `${fresh[0].department}: ${fresh[0].subject}`,
+                      icon: '/icclogo.png',
+                      tag: `mis-ticket-${fresh[0].id}`,
+                      requireInteraction: true,
+                    }
+                  )
+                )
+                .catch((error) =>
+                  console.error('Unable to show notification:', error)
+                );
             }
           }
         }
@@ -173,7 +203,7 @@ export default function MisDashboard() {
         console.error('Ticket loading error:', error);
       }
     },
-    [ready]
+    [ready, alertsEnabled]
   );
 
   useEffect(() => {
@@ -186,6 +216,21 @@ export default function MisDashboard() {
     document.documentElement.dataset.theme = savedTheme;
     document.documentElement.style.colorScheme =
       savedTheme === 'auto' ? 'light dark' : savedTheme;
+
+    if (
+      'serviceWorker' in navigator &&
+      'PushManager' in window &&
+      'Notification' in window &&
+      Notification.permission === 'granted'
+    ) {
+      navigator.serviceWorker
+        .register('/sw.js', { updateViaCache: 'none' })
+        .then((registration) => registration.pushManager.getSubscription())
+        .then((subscription) => setAlertsEnabled(Boolean(subscription)))
+        .catch((error) =>
+          console.error('Unable to check push notification status:', error)
+        );
+    }
 
     load(true);
 
@@ -236,11 +281,84 @@ export default function MisDashboard() {
   }
 
   async function enableSound() {
-    if (
-      'Notification' in window &&
-      Notification.permission !== 'granted'
-    ) {
-      await Notification.requestPermission();
+    setAlertSetupBusy(true);
+
+    try {
+      if (
+        !('serviceWorker' in navigator) ||
+        !('PushManager' in window) ||
+        !('Notification' in window)
+      ) {
+        alert(
+          'This browser does not support background notifications. Use the latest Chrome or Edge.'
+        );
+        return;
+      }
+
+      const permission =
+        Notification.permission === 'granted'
+          ? 'granted'
+          : await Notification.requestPermission();
+
+      if (permission !== 'granted') {
+        alert(
+          'Please allow notifications so new tickets can alert you while another tab is active.'
+        );
+        return;
+      }
+
+      const registration = await navigator.serviceWorker.register('/sw.js', {
+        updateViaCache: 'none',
+      });
+      await registration.update();
+
+      const keyResponse = await fetch('/api/push/subscribe', {
+        cache: 'no-store',
+      });
+      const keyResult = await keyResponse.json().catch(() => null);
+
+      if (!keyResponse.ok || !keyResult?.publicKey) {
+        throw new Error(
+          keyResult?.error || 'Unable to load notification configuration.'
+        );
+      }
+
+      const existing = await registration.pushManager.getSubscription();
+      const subscription =
+        existing ||
+        (await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(
+            keyResult.publicKey
+          ),
+        }));
+
+      const subscribeResponse = await fetch('/api/push/subscribe', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(subscription.toJSON()),
+      });
+      const subscribeResult = await subscribeResponse
+        .json()
+        .catch(() => null);
+
+      if (!subscribeResponse.ok) {
+        throw new Error(
+          subscribeResult?.error || 'Unable to enable notifications.'
+        );
+      }
+
+      setAlertsEnabled(true);
+    } catch (error) {
+      console.error('Unable to enable background alerts:', error);
+      alert(
+        error instanceof Error
+          ? error.message
+          : 'Unable to enable background alerts.'
+      );
+      return;
+    } finally {
+      setAlertSetupBusy(false);
     }
 
     try {
@@ -424,8 +542,18 @@ export default function MisDashboard() {
             type="button"
             className="ui-btn ui-btn--ghost"
             onClick={enableSound}
+            disabled={alertSetupBusy}
+            title={
+              alertsEnabled
+                ? 'Background ticket alerts are enabled'
+                : 'Enable notifications for new tickets'
+            }
           >
-            Test sound
+            {alertSetupBusy
+              ? 'Enabling...'
+              : alertsEnabled
+                ? 'Test alert'
+                : 'Enable alerts'}
           </button>
 
           <button
