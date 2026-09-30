@@ -1,5 +1,8 @@
 export type TicketStatus = 'PENDING' | 'ACCEPTED' | 'IN_PROGRESS' | 'RESOLVED' | 'CANCELLED';
 export type Ticket = {
+  source?: 'ONLINE' | 'WALK_IN';
+  receipt_status?: 'NOT_SENT' | 'SENDING' | 'SENT' | 'FAILED';
+  receipt_sent_at?: string | null;
   id: string;
   ticket_number: string;
   public_token: string;

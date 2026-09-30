@@ -36,3 +36,6 @@ A deployable school IT support ticketing system built with Next.js, TypeScript, 
 - Add email delivery (Resend or school SMTP) for updates when the employee closes the tracking page.
 - The chosen custom alert audio is stored in the MIS browser's localStorage. Each MIS computer can choose its own sound.
 - Browsers require a user interaction before audio and notification permissions work. Click **Enable/Test Sound** once after opening the dashboard.
+
+## Ticket history, walk-in entries and receipts
+See `UPDATE_SETUP.md` before deploying this update. Run the new migration and configure SMTP. Reports now include all resolved history, and MIS can record walk-in assistance and retry failed email receipts.

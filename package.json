@@ -7,11 +7,13 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "generate:vapid": "web-push generate-vapid-keys --json"
+    "generate:vapid": "web-push generate-vapid-keys --json",
+    "test": "node tests/helpdesk.cjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.57.4",
     "next": "16.2.10",
+    "nodemailer": "^10.0.13",
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "web-push": "^3.6.7",
@@ -19,6 +21,7 @@
   },
   "devDependencies": {
     "@types/node": "^24.7.2",
+    "@types/nodemailer": "^8.0.2",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
     "@types/web-push": "^3.6.4",

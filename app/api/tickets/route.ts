@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+import { getTicketHistory } from '@/lib/ticket-history';
+import { deliverReceipt } from '@/lib/email-receipts';
 import { randomBytes } from 'crypto';
 import { z } from 'zod';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
@@ -70,7 +72,7 @@ export async function POST(req: Request) {
         public_token,
         ticket_number,
       })
-      .select('id,ticket_number,public_token,department,subject')
+      .select('*')
       .single();
 
     if (error) throw error;
@@ -79,9 +81,13 @@ export async function POST(req: Request) {
       console.error('New-ticket push notification failed:', pushError);
     });
 
+    const receipt = await deliverReceipt(data);
+
     const base = process.env.NEXT_PUBLIC_APP_URL || new URL(req.url).origin;
     return NextResponse.json({
       ticket_number: data.ticket_number,
+      receipt_status: receipt.status,
+      receipt_message: receipt.message,
       tracking_url: `${base}/track/${data.public_token}`,
     }, { status: 201 });
   } catch (e) {
@@ -95,12 +101,9 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const { data, error } = await getSupabaseAdmin()
-    .from('tickets')
-    .select('*')
-    .order('created_at', { ascending: false })
-    .limit(200);
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json(data);
+  try {
+    return NextResponse.json(await getTicketHistory());
+  } catch {
+    return NextResponse.json({ error: 'Unable to load complete ticket history.' }, { status: 500 });
+  }
 }

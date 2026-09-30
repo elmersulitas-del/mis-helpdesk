@@ -20,7 +20,7 @@ export default function TicketForm({
   onSubmitted,
 }: Props) {
   const [busy, setBusy] = useState(false);
-  const [result, setResult] = useState<{ticket_number:string;tracking_url:string} | null>(null);
+  const [result, setResult] = useState<{ticket_number:string;tracking_url:string;receipt_status?:string;receipt_message?:string} | null>(null);
   const [error, setError] = useState('');
 
   async function submit(e: FormEvent<HTMLFormElement>) {
@@ -28,7 +28,9 @@ export default function TicketForm({
     setBusy(true);
     setError('');
 
-    const data = Object.fromEntries(new FormData(e.currentTarget));
+    const form = e.currentTarget;
+    const data = Object.fromEntries(new FormData(form));
+    try {
     const res = await fetch('/api/tickets', {
       method: 'POST',
       headers: {
@@ -48,7 +50,9 @@ export default function TicketForm({
 
     setResult(json);
     onSubmitted?.();
-    e.currentTarget.reset();
+    form.reset();
+    } catch { setError('Unable to submit. Check your connection and try again.'); }
+    finally { setBusy(false); }
   }
 
   if (result) {
@@ -58,6 +62,7 @@ export default function TicketForm({
         <div className="notice successbox">
           <b>Ticket: {result.ticket_number}</b><br />Please save your tracking link.
         </div>
+        <p role="status">{result.receipt_message}</p>
         <a className="btn" href={result.tracking_url}>Track my request</a>
         <button className="btn secondary" style={{marginLeft:8}} onClick={() => setResult(null)}>Submit another</button>
       </div>

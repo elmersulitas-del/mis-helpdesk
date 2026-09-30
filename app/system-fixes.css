@@ -109,3 +109,8 @@
     width: 100%;
   }
 }
+
+.manual-entry-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:16px; margin:18px 0; }
+.manual-entry-grid label { display:flex; flex-direction:column; gap:6px; }
+.manual-entry-grid input,.manual-entry-grid textarea { width:100%; padding:10px; border:1px solid #aaa; border-radius:6px; color:inherit; background:transparent; }
+.manual-entry-grid textarea { min-height:100px; }

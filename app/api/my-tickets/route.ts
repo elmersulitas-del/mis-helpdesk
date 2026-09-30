@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getEmployeeIdentity } from '@/lib/employee-auth';
-import { getSupabaseAdmin } from '@/lib/supabase-admin';
+import { getTicketHistory } from '@/lib/ticket-history';
 
 export async function GET(request: Request) {
   const employee = await getEmployeeIdentity(request);
@@ -12,19 +12,9 @@ export async function GET(request: Request) {
     );
   }
 
-  const { data, error } = await getSupabaseAdmin()
-    .from('tickets')
-    .select('*')
-    .eq('reporter_email', employee.email)
-    .order('updated_at', { ascending: false })
-    .limit(200);
-
-  if (error) {
-    return NextResponse.json(
-      { error: 'Unable to load your ticket history.' },
-      { status: 500 }
-    );
+  try {
+    return NextResponse.json(await getTicketHistory(employee.email));
+  } catch {
+    return NextResponse.json({ error: 'Unable to load complete ticket history.' }, { status: 500 });
   }
-
-  return NextResponse.json(data);
 }

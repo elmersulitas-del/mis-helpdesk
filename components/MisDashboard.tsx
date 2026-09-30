@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Ticket, TicketStatus } from '@/lib/types';
+import ManualAccomplishment from '@/components/ManualAccomplishment';
 import TicketConversation from '@/components/TicketConversation';
 
 type ThemeMode = 'light' | 'auto' | 'dark';
@@ -72,11 +73,13 @@ function urlBase64ToUint8Array(value: string) {
   return output;
 }
 
+function philippineMonth(value: string) {
+  const parts = new Intl.DateTimeFormat('en-PH', { timeZone: 'Asia/Manila', year: 'numeric', month: '2-digit' }).formatToParts(new Date(value));
+  return `${parts.find(part => part.type === 'year')?.value}-${parts.find(part => part.type === 'month')?.value}`;
+}
+
 function monthValue(date = new Date()) {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
-    2,
-    '0'
-  )}`;
+  return philippineMonth(date.toISOString());
 }
 
 function monthLabel(value: string) {
@@ -94,6 +97,7 @@ function formatDate(value: string | null) {
   if (!value) return '—';
 
   return new Intl.DateTimeFormat('en-PH', {
+    timeZone: 'Asia/Manila',
     month: 'short',
     day: '2-digit',
     year: 'numeric',
@@ -441,7 +445,7 @@ export default function MisDashboard() {
       .filter(
         (ticket) =>
           ticket.status === 'RESOLVED' &&
-          ticket.resolved_at?.slice(0, 7) === reportMonth
+          ticket.resolved_at && philippineMonth(ticket.resolved_at) === reportMonth
       )
       .sort(
         (a, b) =>
@@ -910,6 +914,13 @@ export default function MisDashboard() {
                             : 'Open conversation'}
                         </button>
 
+                        <div><small>Receipt: {ticket.receipt_status || 'NOT_SENT'}</small>
+                          {(!ticket.receipt_status || ['NOT_SENT', 'FAILED'].includes(ticket.receipt_status)) && ticket.reporter_email && <button type="button" className="ui-btn" onClick={async (event) => {
+                            const button = event.currentTarget; button.disabled = true;
+                            try { const response = await fetch(`/api/tickets/${ticket.id}/receipt`, { method: 'POST' }); const result = await response.json(); alert(result.message || result.error); await load(true); }
+                            catch { alert('Unable to send receipt.'); } finally { button.disabled = false; }
+                          }}>Send receipt</button>}
+                        </div>
                         {ticket.status === 'PENDING' && (
                           <button
                             type="button"
@@ -1063,6 +1074,8 @@ export default function MisDashboard() {
                 </div>
               </div>
 
+              <ManualAccomplishment onSaved={() => { void load(true); }} />
+
               <div className="print-report">
                 <header className="print-report__header">
                   <img
@@ -1134,6 +1147,16 @@ export default function MisDashboard() {
                               <b>{ticket.ticket_number}</b>
                               <br />
                               <span>{ticket.reporter_name}</span>
+                              <br /><small>{ticket.source === 'WALK_IN' ? 'Walk-in' : 'Online'}</small>
+                              <div className="no-print"><small>Receipt: {ticket.receipt_status || 'NOT_SENT'}</small>
+                              {(!ticket.receipt_status || ['NOT_SENT', 'FAILED'].includes(ticket.receipt_status)) && ticket.reporter_email && <button className="ui-btn" type="button" onClick={async (event) => {
+                                const button = event.currentTarget; button.disabled = true;
+                                try {
+                                  const response = await fetch(`/api/tickets/${ticket.id}/receipt`, { method: 'POST' });
+                                  const result = await response.json(); alert(result.message || result.error); await load(true);
+                                } catch { alert('Unable to send receipt.'); }
+                                finally { button.disabled = false; }
+                              }}>Send receipt</button>}</div>
                             </td>
 
                             <td>
