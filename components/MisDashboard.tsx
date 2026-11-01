@@ -21,44 +21,7 @@ const STATUS_OPTIONS: Array<'ALL' | TicketStatus> = [
 
 const ALERT_SOUND = '/sounds/alert.mp3';
 
-function playDefault(volume = 1) {
-  const AudioContextClass =
-    window.AudioContext ||
-    (
-      window as typeof window & {
-        webkitAudioContext?: typeof AudioContext;
-      }
-    ).webkitAudioContext;
-
-  if (!AudioContextClass) return;
-
-  if (volume <= 0) return;
-  const context = new AudioContextClass();
-  setTimeout(() => { void context.close(); }, 1000);
-
-  [0, 0.25, 0.5].forEach((delay) => {
-    const oscillator = context.createOscillator();
-    const gain = context.createGain();
-
-    oscillator.frequency.value = 880;
-
-    gain.gain.setValueAtTime(0.001, context.currentTime + delay);
-    gain.gain.exponentialRampToValueAtTime(
-      Math.max(0.01, volume * 0.7),
-      context.currentTime + delay + 0.02
-    );
-    gain.gain.exponentialRampToValueAtTime(
-      0.001,
-      context.currentTime + delay + 0.18
-    );
-
-    oscillator.connect(gain);
-    gain.connect(context.destination);
-
-    oscillator.start(context.currentTime + delay);
-    oscillator.stop(context.currentTime + delay + 0.2);
-  });
-}
+const SOUND_PREFERENCE = 'misSoundEnabled';
 
 function urlBase64ToUint8Array(value: string) {
   const padding = '='.repeat((4 - (value.length % 4)) % 4);
@@ -130,6 +93,12 @@ export default function MisDashboard() {
   );
   const [alertsEnabled, setAlertsEnabled] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(false);
+  const [soundProblem, setSoundProblem] = useState<'blocked' | 'unavailable' | ''>('');
+  const [soundPreferenceNotice, setSoundPreferenceNotice] = useState('');
+  const [pushNotice, setPushNotice] = useState('');
+  const [previewing, setPreviewing] = useState(false);
+  const previewTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const playbackAttempt = useRef(0);
   const [connectionError, setConnectionError] = useState('');
   const [lastRefresh, setLastRefresh] = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
@@ -141,6 +110,46 @@ export default function MisDashboard() {
 
   const audio = useRef<HTMLAudioElement | null>(null);
   const known = useRef(new Set<string>());
+
+  useEffect(() => {
+    try {
+      setSoundEnabled(localStorage.getItem(SOUND_PREFERENCE) === 'true');
+      const savedVolume = Number(localStorage.getItem('misVolume') ?? '1');
+      setVolume(Number.isFinite(savedVolume) ? Math.min(1, Math.max(0, savedVolume)) : 1);
+    } catch {
+      setSoundPreferenceNotice('Browser storage is unavailable. Sound can be enabled for this visit, but the setting cannot be remembered.');
+    }
+    const syncPreference = (event: StorageEvent) => {
+      if (event.key === SOUND_PREFERENCE || event.key === null) {
+        setSoundEnabled(event.key === SOUND_PREFERENCE && event.newValue === 'true');
+      }
+    };
+    window.addEventListener('storage', syncPreference);
+    return () => {
+      window.removeEventListener('storage', syncPreference);
+      if (previewTimer.current) clearTimeout(previewTimer.current);
+    };
+  }, []);
+
+  const startSound = useCallback((loop: boolean, level: number) => {
+    const player = audio.current || new Audio(ALERT_SOUND);
+    audio.current = player;
+    player.loop = loop; player.volume = level;
+    const attempt = ++playbackAttempt.current;
+    // Called directly from the button before any await, so this can unlock audio.
+    void player.play().then(() => {
+      if (playbackAttempt.current === attempt) setSoundProblem('');
+    }).catch((error: unknown) => {
+      if (playbackAttempt.current !== attempt) return;
+      const name = error instanceof DOMException || error instanceof Error ? error.name : '';
+      if (name !== 'AbortError') setSoundProblem(name === 'NotAllowedError' ? 'blocked' : 'unavailable');
+    });
+  }, []);
+
+  const stopSound = useCallback(() => {
+    playbackAttempt.current++;
+    if (audio.current) { audio.current.pause(); audio.current.currentTime = 0; }
+  }, []);
 
   const load = useCallback(
     async (initial = false) => {
@@ -210,10 +219,11 @@ export default function MisDashboard() {
   );
 
   useEffect(() => {
-    setVolume(Number(localStorage.getItem('misVolume') || '1'));
-
-    const savedTheme =
-      (localStorage.getItem('misTheme') as ThemeMode | null) || 'auto';
+    let savedTheme: ThemeMode = 'auto';
+    try {
+      const value = localStorage.getItem('misTheme');
+      if (value === 'light' || value === 'dark' || value === 'auto') savedTheme = value;
+    } catch { /* Theme falls back to auto when storage is unavailable. */ }
 
     setTheme(savedTheme);
     document.documentElement.dataset.theme = savedTheme;
@@ -249,26 +259,12 @@ export default function MisDashboard() {
   }, [load]);
 
   const shouldRing = soundEnabled && !connectionError && tickets.some(ticket => ticket.status === 'PENDING');
+  const shouldPlay = soundEnabled && (shouldRing || previewing);
   useEffect(() => {
-    if (!shouldRing) {
-      if (audio.current) { audio.current.pause(); audio.current.currentTime = 0; }
-      return;
-    }
-    const player = new Audio(ALERT_SOUND);
-    player.loop = true; player.volume = volume;
-    audio.current = player;
-    let cancelled = false;
-    let fallback: ReturnType<typeof setInterval> | undefined;
-    player.play().catch(() => {
-      if (cancelled) return;
-      playDefault(volume);
-      fallback = setInterval(() => playDefault(volume), 4000);
-    });
-    return () => {
-      cancelled = true; player.pause(); player.currentTime = 0;
-      if (fallback) clearInterval(fallback);
-    };
-  }, [shouldRing, volume]);
+    if (shouldPlay) startSound(shouldRing, volume);
+    else stopSound();
+    return stopSound;
+  }, [shouldPlay, shouldRing, volume, startSound, stopSound]);
 
   async function update(ticket: Ticket, status: TicketStatus) {
     if (updatingId) return;
@@ -318,9 +314,36 @@ export default function MisDashboard() {
     finally { setUpdatingId(null); }
   }
 
-  async function enableSound() {
+  function enableSound() {
+    try {
+      localStorage.setItem(SOUND_PREFERENCE, 'true');
+      setSoundPreferenceNotice('');
+    } catch {
+      setSoundPreferenceNotice('Sound is enabled for this visit. Browser storage is blocked, so this setting cannot be remembered.');
+    }
     setSoundEnabled(true);
+    setSoundProblem('');
+    const pending = !connectionError && tickets.some(ticket => ticket.status === 'PENDING');
+    if (previewTimer.current) clearTimeout(previewTimer.current);
+    setPreviewing(!pending);
+    if (!pending) previewTimer.current = setTimeout(() => setPreviewing(false), 1200);
+    startSound(pending, volume);
+    // Sound is independent from notification permission and VAPID setup.
+    if (!alertsEnabled && !alertSetupBusy) void enablePush();
+  }
+
+  function disableSound() {
+    try { localStorage.setItem(SOUND_PREFERENCE, 'false'); }
+    catch { setSoundPreferenceNotice('The browser could not save this preference.'); }
+    setSoundEnabled(false); setPreviewing(false); setSoundProblem('');
+    if (previewTimer.current) clearTimeout(previewTimer.current);
+    playbackAttempt.current++;
+    audio.current?.pause();
+  }
+
+  async function enablePush() {
     setAlertSetupBusy(true);
+    setPushNotice('');
 
     try {
       if (
@@ -328,9 +351,7 @@ export default function MisDashboard() {
         !('PushManager' in window) ||
         !('Notification' in window)
       ) {
-        alert(
-          'This browser does not support background notifications. Use the latest Chrome or Edge.'
-        );
+        setPushNotice('Background notifications are unavailable in this browser. Dashboard sound works separately.');
         return;
       }
 
@@ -340,9 +361,7 @@ export default function MisDashboard() {
           : await Notification.requestPermission();
 
       if (permission !== 'granted') {
-        alert(
-          'Please allow notifications so new tickets can alert you while another tab is active.'
-        );
+        setPushNotice('Background notifications are not allowed. Dashboard sound works separately.');
         return;
       }
 
@@ -390,11 +409,7 @@ export default function MisDashboard() {
       setAlertsEnabled(true);
     } catch (error) {
       console.error('Unable to enable background alerts:', error);
-      alert(
-        error instanceof Error
-          ? error.message
-          : 'Unable to enable background alerts.'
-      );
+      setPushNotice('Background notifications could not be enabled. Dashboard sound works separately.');
       return;
     } finally {
       setAlertSetupBusy(false);
@@ -409,7 +424,7 @@ export default function MisDashboard() {
 
   function applyTheme(mode: ThemeMode) {
     setTheme(mode);
-    localStorage.setItem('misTheme', mode);
+    try { localStorage.setItem('misTheme', mode); } catch { /* Keep the theme for this visit. */ }
 
 
   }
@@ -570,19 +585,11 @@ export default function MisDashboard() {
             type="button"
             className="ui-btn ui-btn--ghost"
             onClick={enableSound}
-            disabled={alertSetupBusy}
-            title={
-              alertsEnabled
-                ? 'Background ticket alerts are enabled'
-                : 'Enable notifications for new tickets'
-            }
+            title={soundEnabled ? 'Sound preference is saved for this browser and website' : 'Enable and remember sound in this browser'}
           >
-            {alertSetupBusy
-              ? 'Enabling...'
-              : alertsEnabled
-                ? 'Enable / check alerts'
-                : 'Enable alerts'}
+            {soundProblem === 'blocked' ? 'Activate sound' : soundProblem === 'unavailable' ? 'Retry sound' : soundEnabled ? 'Test sound' : 'Enable alerts'}
           </button>
+          {soundEnabled && <button type="button" className="ui-btn ui-btn--ghost" onClick={disableSound}>Disable sound</button>}
 
           <button
             type="button"
@@ -591,7 +598,9 @@ export default function MisDashboard() {
               try {
                 const response = await fetch('/api/auth/logout', { method: 'POST' });
                 if (!response.ok) { alert('Unable to log out. Please retry.'); return; }
-                setSoundEnabled(false); audio.current?.pause();
+                setSoundEnabled(false); setPreviewing(false); audio.current?.pause();
+                playbackAttempt.current++;
+                if (previewTimer.current) clearTimeout(previewTimer.current);
                 const registration = await navigator.serviceWorker?.getRegistration();
                 if (registration) {
                   const notifications = await registration.getNotifications();
@@ -607,6 +616,13 @@ export default function MisDashboard() {
           </button>
         </div>
       </header>
+
+      <div className="no-print" aria-live="polite">
+        {soundProblem === 'blocked' && soundEnabled && <div className="notice" role="status">Sound is enabled, but this browser blocked automatic playback. Click Activate sound to allow it for this visit.</div>}
+        {soundProblem === 'unavailable' && soundEnabled && <div className="notice error" role="alert">The alert sound could not be played. Check your connection and click Retry sound.</div>}
+        {soundPreferenceNotice && <div className="notice" role="status">{soundPreferenceNotice}</div>}
+        {pushNotice && <div className="notice" role="status">{pushNotice}</div>}
+      </div>
 
       <div className="mis-layout">
         <aside className="mis-sidebar no-print">
@@ -731,7 +747,7 @@ export default function MisDashboard() {
                     {connectionError ? 'Connection interrupted' : ready ? 'System online' : 'Connecting…'}
                   </span>
                   <small>{lastRefresh ? `Last updated: ${formatDate(lastRefresh)}` : 'Waiting for first refresh'}</small>
-                  <small>{soundEnabled ? 'Sound repeats while requests are pending' : 'Click Enable alerts to enable sound'}</small>
+                  <small>{soundEnabled ? (volume === 0 ? 'Sound enabled — volume is muted' : 'Sound enabled for this browser') : 'Click Enable alerts to enable sound'}</small>
                 </div>
               </section>
 
@@ -845,10 +861,8 @@ export default function MisDashboard() {
                         const next = Number(event.target.value);
 
                         setVolume(next);
-                        localStorage.setItem(
-                          'misVolume',
-                          String(next)
-                        );
+                        try { localStorage.setItem('misVolume', String(next)); }
+                        catch { setSoundPreferenceNotice('Volume applies for this visit; browser storage is unavailable.'); }
                       }}
                     />
                   </label>
