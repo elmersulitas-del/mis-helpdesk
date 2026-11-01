@@ -62,7 +62,7 @@ export async function POST(
     );
   }
 
-  const parsed = messageSchema.safeParse(await request.json());
+  const parsed = messageSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) {
     return NextResponse.json(
       { error: 'Message must contain 1 to 2,000 characters.' },

@@ -32,7 +32,9 @@ function playDefault(volume = 1) {
 
   if (!AudioContextClass) return;
 
+  if (volume <= 0) return;
   const context = new AudioContextClass();
+  setTimeout(() => { void context.close(); }, 1000);
 
   [0, 0.25, 0.5].forEach((delay) => {
     const oscillator = context.createOscillator();
@@ -127,6 +129,14 @@ export default function MisDashboard() {
     null
   );
   const [alertsEnabled, setAlertsEnabled] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(false);
+  const [connectionError, setConnectionError] = useState('');
+  const [lastRefresh, setLastRefresh] = useState<string | null>(null);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const loadingRef = useRef(false);
+  const etagRef = useRef('');
+  const initializedRef = useRef(false);
+  const mutationRef = useRef(0);
   const [alertSetupBusy, setAlertSetupBusy] = useState(false);
 
   const audio = useRef<HTMLAudioElement | null>(null);
@@ -134,9 +144,13 @@ export default function MisDashboard() {
 
   const load = useCallback(
     async (initial = false) => {
+      if (loadingRef.current) return;
+      loadingRef.current = true;
+      const generation = mutationRef.current;
       try {
         const response = await fetch('/api/tickets', {
           cache: 'no-store',
+          headers: etagRef.current ? { 'If-None-Match': etagRef.current } : {},
         });
 
         if (response.status === 401) {
@@ -144,38 +158,20 @@ export default function MisDashboard() {
           return;
         }
 
-        if (!response.ok) {
-          console.error('Unable to load tickets.');
-          return;
+        if (response.status === 304) {
+          setConnectionError(''); setLastRefresh(new Date().toISOString()); return;
         }
+        if (!response.ok) throw new Error('Unable to refresh tickets. Showing the last successfully loaded data.');
 
         const data: Ticket[] = await response.json();
+        if (generation !== mutationRef.current) return;
 
-        if (!initial && ready) {
+        if (!initial && initializedRef.current) {
           const fresh = data.filter(
             (ticket) => !known.current.has(ticket.id)
           );
 
           if (fresh.length) {
-            const savedVolume = Number(
-              localStorage.getItem('misVolume') || '1'
-            );
-
-            if (audio.current) {
-              audio.current.pause();
-              audio.current.currentTime = 0;
-            }
-
-            audio.current = new Audio(ALERT_SOUND);
-            audio.current.volume = savedVolume;
-
-            audio.current
-              .play()
-              .catch((error) => {
-                console.error('Unable to play alert sound:', error);
-                playDefault(savedVolume);
-              });
-
             if (
               !alertsEnabled &&
               'Notification' in window &&
@@ -202,12 +198,15 @@ export default function MisDashboard() {
 
         known.current = new Set(data.map((ticket) => ticket.id));
         setTickets(data);
+        etagRef.current = response.headers.get('etag') || '';
+        initializedRef.current = true;
+        setConnectionError(''); setLastRefresh(new Date().toISOString());
         setReady(true);
       } catch (error) {
-        console.error('Ticket loading error:', error);
-      }
+        setConnectionError(error instanceof Error ? error.message : 'Unable to refresh tickets.');
+      } finally { loadingRef.current = false; }
     },
-    [ready, alertsEnabled]
+    [alertsEnabled]
   );
 
   useEffect(() => {
@@ -230,7 +229,11 @@ export default function MisDashboard() {
       navigator.serviceWorker
         .register('/sw.js', { updateViaCache: 'none' })
         .then((registration) => registration.pushManager.getSubscription())
-        .then((subscription) => setAlertsEnabled(Boolean(subscription)))
+        .then(async (subscription) => {
+          if (!subscription) { setAlertsEnabled(false); return; }
+          const response = await fetch('/api/push/subscribe', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(subscription.toJSON()) });
+          setAlertsEnabled(response.ok);
+        })
         .catch((error) =>
           console.error('Unable to check push notification status:', error)
         );
@@ -245,24 +248,48 @@ export default function MisDashboard() {
     return () => clearInterval(timer);
   }, [load]);
 
+  const shouldRing = soundEnabled && !connectionError && tickets.some(ticket => ticket.status === 'PENDING');
+  useEffect(() => {
+    if (!shouldRing) {
+      if (audio.current) { audio.current.pause(); audio.current.currentTime = 0; }
+      return;
+    }
+    const player = new Audio(ALERT_SOUND);
+    player.loop = true; player.volume = volume;
+    audio.current = player;
+    let cancelled = false;
+    let fallback: ReturnType<typeof setInterval> | undefined;
+    player.play().catch(() => {
+      if (cancelled) return;
+      playDefault(volume);
+      fallback = setInterval(() => playDefault(volume), 4000);
+    });
+    return () => {
+      cancelled = true; player.pause(); player.currentTime = 0;
+      if (fallback) clearInterval(fallback);
+    };
+  }, [shouldRing, volume]);
+
   async function update(ticket: Ticket, status: TicketStatus) {
+    if (updatingId) return;
     let resolutionNotes = ticket.resolution_notes || '';
 
     if (status === 'RESOLVED') {
-      resolutionNotes =
-        prompt(
-          'Resolution notes / action taken:',
-          resolutionNotes
-        ) || resolutionNotes;
-
-      if (!resolutionNotes.trim()) return;
+      const notes = prompt('Resolution notes / action taken:', resolutionNotes);
+      if (notes === null || !notes.trim()) return;
+      resolutionNotes = notes.trim();
     }
 
-    const assignedTo =
-      ticket.assigned_to ||
-      prompt('Assigned technician name:', 'MIS Staff') ||
-      'MIS Staff';
+    let assignedTo = ticket.assigned_to || '';
+    if (!assignedTo && status !== 'CANCELLED') {
+      const name = prompt('Assigned technician name:', 'MIS Staff');
+      if (name === null || !name.trim()) return;
+      assignedTo = name.trim();
+    }
 
+    mutationRef.current++;
+    setUpdatingId(ticket.id);
+    try {
     const response = await fetch(`/api/tickets/${ticket.id}`, {
       method: 'PATCH',
       headers: {
@@ -270,6 +297,7 @@ export default function MisDashboard() {
       },
       body: JSON.stringify({
         status,
+        expected_status: ticket.status,
         assigned_to: assignedTo,
         resolution_notes: resolutionNotes,
       }),
@@ -278,13 +306,20 @@ export default function MisDashboard() {
     if (!response.ok) {
       const result = await response.json().catch(() => null);
       alert(result?.error || 'Unable to update the ticket.');
+      etagRef.current = ''; await load(true);
       return;
     }
 
-    load(true);
+    const updated: Ticket = await response.json();
+    setTickets(current => current.map(item => item.id === updated.id ? updated : item));
+    etagRef.current = '';
+    await load(true);
+    } catch { alert('Unable to update the ticket. Check your connection and refresh before retrying.'); }
+    finally { setUpdatingId(null); }
   }
 
   async function enableSound() {
+    setSoundEnabled(true);
     setAlertSetupBusy(true);
 
     try {
@@ -365,29 +400,18 @@ export default function MisDashboard() {
       setAlertSetupBusy(false);
     }
 
-    try {
-      if (audio.current) {
-        audio.current.pause();
-        audio.current.currentTime = 0;
-      }
-
-      audio.current = new Audio(ALERT_SOUND);
-      audio.current.volume = volume;
-
-      await audio.current.play();
-    } catch (error) {
-      console.error('Unable to test alert sound:', error);
-      playDefault(volume);
-    }
   }
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    document.documentElement.style.colorScheme = theme === 'auto' ? 'light dark' : theme;
+  }, [theme]);
 
   function applyTheme(mode: ThemeMode) {
     setTheme(mode);
     localStorage.setItem('misTheme', mode);
 
-    document.documentElement.dataset.theme = mode;
-    document.documentElement.style.colorScheme =
-      mode === 'auto' ? 'light dark' : mode;
+
   }
 
   const visibleTickets = useMemo(() => {
@@ -556,7 +580,7 @@ export default function MisDashboard() {
             {alertSetupBusy
               ? 'Enabling...'
               : alertsEnabled
-                ? 'Test alert'
+                ? 'Enable / check alerts'
                 : 'Enable alerts'}
           </button>
 
@@ -564,11 +588,19 @@ export default function MisDashboard() {
             type="button"
             className="ui-btn ui-btn--ghost"
             onClick={async () => {
-              await fetch('/api/auth/logout', {
-                method: 'POST',
-              });
-
-              location.href = '/mis/login';
+              try {
+                const response = await fetch('/api/auth/logout', { method: 'POST' });
+                if (!response.ok) { alert('Unable to log out. Please retry.'); return; }
+                setSoundEnabled(false); audio.current?.pause();
+                const registration = await navigator.serviceWorker?.getRegistration();
+                if (registration) {
+                  const notifications = await registration.getNotifications();
+                  notifications.forEach(notification => notification.close());
+                  const subscription = await registration.pushManager?.getSubscription();
+                  await subscription?.unsubscribe();
+                }
+                location.href = '/mis/login';
+              } catch { alert('Unable to log out. Check your connection.'); }
             }}
           >
             Logout
@@ -696,12 +728,14 @@ export default function MisDashboard() {
                 <div className="operations-health">
                   <span>
                     <i />
-                    System online
+                    {connectionError ? 'Connection interrupted' : ready ? 'System online' : 'Connecting…'}
                   </span>
-                  <small>Refreshing every 5 seconds</small>
+                  <small>{lastRefresh ? `Last updated: ${formatDate(lastRefresh)}` : 'Waiting for first refresh'}</small>
+                  <small>{soundEnabled ? 'Sound repeats while requests are pending' : 'Click Enable alerts to enable sound'}</small>
                 </div>
               </section>
 
+              {connectionError && <div className="notice error" role="alert">{connectionError} <button type="button" onClick={() => void load(true)}>Retry</button></div>}
               <section className="metric-grid no-print">
                 <button
                   type="button"
@@ -898,7 +932,7 @@ export default function MisDashboard() {
                         </div>
                       )}
 
-                      <div className="ticket-actions">
+                      <fieldset className="ticket-actions" disabled={updatingId === ticket.id} style={{ border: 0, padding: 0, margin: 0 }}>
                         <button
                           type="button"
                           className="ui-btn ui-btn--message"
@@ -914,13 +948,6 @@ export default function MisDashboard() {
                             : 'Open conversation'}
                         </button>
 
-                        <div><small>Receipt: {ticket.receipt_status || 'NOT_SENT'}</small>
-                          {(!ticket.receipt_status || ['NOT_SENT', 'FAILED'].includes(ticket.receipt_status)) && ticket.reporter_email && <button type="button" className="ui-btn" onClick={async (event) => {
-                            const button = event.currentTarget; button.disabled = true;
-                            try { const response = await fetch(`/api/tickets/${ticket.id}/receipt`, { method: 'POST' }); const result = await response.json(); alert(result.message || result.error); await load(true); }
-                            catch { alert('Unable to send receipt.'); } finally { button.disabled = false; }
-                          }}>Send receipt</button>}
-                        </div>
                         {ticket.status === 'PENDING' && (
                           <button
                             type="button"
@@ -970,7 +997,7 @@ export default function MisDashboard() {
                               Cancel
                             </button>
                           )}
-                      </div>
+                      </fieldset>
 
                       {openConversation === ticket.id && (
                         <TicketConversation
@@ -1148,15 +1175,7 @@ export default function MisDashboard() {
                               <br />
                               <span>{ticket.reporter_name}</span>
                               <br /><small>{ticket.source === 'WALK_IN' ? 'Walk-in' : 'Online'}</small>
-                              <div className="no-print"><small>Receipt: {ticket.receipt_status || 'NOT_SENT'}</small>
-                              {(!ticket.receipt_status || ['NOT_SENT', 'FAILED'].includes(ticket.receipt_status)) && ticket.reporter_email && <button className="ui-btn" type="button" onClick={async (event) => {
-                                const button = event.currentTarget; button.disabled = true;
-                                try {
-                                  const response = await fetch(`/api/tickets/${ticket.id}/receipt`, { method: 'POST' });
-                                  const result = await response.json(); alert(result.message || result.error); await load(true);
-                                } catch { alert('Unable to send receipt.'); }
-                                finally { button.disabled = false; }
-                              }}>Send receipt</button>}</div>
+
                             </td>
 
                             <td>

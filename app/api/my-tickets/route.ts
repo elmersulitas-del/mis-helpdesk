@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getEmployeeIdentity } from '@/lib/employee-auth';
-import { getTicketHistory } from '@/lib/ticket-history';
+import { ticketHistoryResponse } from '@/lib/ticket-history';
 
 export async function GET(request: Request) {
   const employee = await getEmployeeIdentity(request);
@@ -13,7 +13,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    return NextResponse.json(await getTicketHistory(employee.email));
+    return await ticketHistoryResponse(request, employee.email);
   } catch {
     return NextResponse.json({ error: 'Unable to load complete ticket history.' }, { status: 500 });
   }

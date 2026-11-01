@@ -5,6 +5,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 import TicketConversation from '@/components/TicketConversation';
@@ -43,6 +44,8 @@ export default function ClientDashboard({
   email,
   onSignOut,
 }: Props) {
+  const etagRef = useRef('');
+  const loadingRef = useRef(false);
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [view, setView] = useState<'NEW' | 'HISTORY' | 'TICKET'>('NEW');
@@ -52,6 +55,8 @@ export default function ClientDashboard({
 
   const loadTickets = useCallback(
     async (quiet = false) => {
+      if (loadingRef.current) return;
+      loadingRef.current = true;
       if (!quiet) setLoading(true);
 
       try {
@@ -59,8 +64,10 @@ export default function ClientDashboard({
           cache: 'no-store',
           headers: {
             authorization: `Bearer ${session.access_token}`,
+            ...(etagRef.current ? { 'If-None-Match': etagRef.current } : {}),
           },
         });
+        if (response.status === 304) { setError(''); return; }
         const result = await response.json().catch(() => null);
 
         if (!response.ok) {
@@ -70,11 +77,13 @@ export default function ClientDashboard({
           return;
         }
 
+        etagRef.current = response.headers.get('etag') || '';
         setTickets(result);
         setError('');
       } catch {
         setError('Unable to load your ticket history.');
       } finally {
+        loadingRef.current = false;
         if (!quiet) setLoading(false);
       }
     },

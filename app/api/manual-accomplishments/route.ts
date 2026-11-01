@@ -1,10 +1,11 @@
-import { NextResponse } from 'next/server';
+import { after, NextResponse } from 'next/server';
 import { randomBytes } from 'crypto';
 import { z } from 'zod';
 import { isMisAuthenticated } from '@/lib/auth';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
-import { deliverReceipt } from '@/lib/email-receipts';
+import { processEmailQueue } from '@/lib/email-receipts';
 
+export const maxDuration = 60;
 const schema = z.object({
   reporter_name: z.string().trim().min(1).max(120),
   reporter_email: z.email().max(254).transform(value => value.toLowerCase()),
@@ -27,6 +28,6 @@ export async function POST(request: Request) {
     public_token: randomBytes(24).toString('hex'),
   }).select('*').single();
   if (error) return NextResponse.json({ error: 'Unable to save. Check that the walk-in migration has been applied.' }, { status: 500 });
-  const receipt = await deliverReceipt(data);
-  return NextResponse.json({ ticket: data, receipt_status: receipt.status, message: receipt.message }, { status: 201 });
+  after(async () => { await processEmailQueue(data.id).catch(error => console.error('Email worker:', error)); });
+  return NextResponse.json({ ticket: data, message: 'Saved. The email receipt will be sent automatically.' }, { status: 201 });
 }

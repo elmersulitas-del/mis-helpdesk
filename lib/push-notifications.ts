@@ -30,7 +30,7 @@ export async function sendNewTicketPush(ticket: NewTicketPush) {
   const supabase = getSupabaseAdmin();
   const { data, error } = await supabase
     .from('mis_push_subscriptions')
-    .select('endpoint,p256dh,auth');
+    .select('endpoint,p256dh,auth').gt('expires_at', new Date().toISOString()).not('session_key', 'is', null);
 
   if (error) {
     console.error('Unable to load MIS push subscriptions:', error.message);
@@ -57,7 +57,7 @@ export async function sendNewTicketPush(ticket: NewTicketPush) {
             },
           },
           payload,
-          { TTL: 60, urgency: 'high' }
+          { TTL: 60, urgency: 'high', timeout: 5000 }
         );
       } catch (error) {
         const statusCode =

@@ -1,0 +1,30 @@
+ICC MIS HELPDESK — UPDATED PROJECT
+
+1. Mag-backup muna ng Supabase database at existing project.
+2. Sa Supabase SQL Editor, patakbuhin ang:
+   supabase/migrations/20260930_walk_in_receipts.sql (kung hindi pa na-run)
+   supabase/migrations/20261101_helpdesk_reliability.sql
+   Para sa bagong database, unahin ang supabase/schema.sql bago ang dalawang migration.
+3. Palitan ang project files at itama ang environment variables gamit ang .env.example.
+   Huwag burahin o i-share ang sarili mong .env.local at credentials.
+   Mahalaga: SUPABASE_URL, SUPABASE_SECRET_KEY, AUTH_SECRET, at SMTP settings.
+4. Patakbuhin ang npm ci, pagkatapos i-build at i-redeploy ang project.
+5. Mag-set up ng scheduled email worker para sa automatic retries kahit sarado
+   ang admin dashboard. Nasa UPDATE_SETUP.md ang endpoint at authorization header.
+6. Mag-login ulit bilang admin at pindutin ang Enable alerts.
+
+SOUND
+Paulit-ulit habang may PENDING request. Hihinto kapag accepted na ang huling
+pending request. Kung may ibang pending, magpapatuloy ang sound. Kailangang
+bukas ang dashboard at payagan ng browser ang audio.
+
+EMAIL
+Automatic ang unang acknowledgement. Kapag RESOLVED na, may reply email na
+may action taken at technician. Para sa lumang emails bago ang update, walang
+na-save na original Message-ID kaya standalone resolution email muna.
+
+ADMIN
+Wala na ang Receipt: SENT/NOT_SENT at Send receipt buttons sa queue at reports.
+
+Basahin ang UPDATE_SETUP.md para sa buong setup, tests at troubleshooting.
+Hindi pa nito nababago ang live database o deployed site mo.

@@ -1,3 +1,4 @@
+import { NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
 import type { Ticket } from '@/lib/types';
 
@@ -20,4 +21,13 @@ export async function getTicketHistory(email?: string): Promise<Ticket[]> {
     offset += data.length;
   }
   return tickets;
+}
+
+export async function ticketHistoryResponse(request: Request, email?: string) {
+  const { data: revision, error } = await getSupabaseAdmin().rpc('ticket_history_revision', { p_email: email || null });
+  if (error) throw new Error('Unable to check ticket history. Apply the reliability migration.');
+  const etag = `"${revision}"`;
+  const headers = { ETag: etag, 'Cache-Control': 'private, no-store', Vary: 'Cookie, Authorization' };
+  if (request.headers.get('if-none-match') === etag) return new NextResponse(null, { status: 304, headers });
+  return NextResponse.json(await getTicketHistory(email), { headers });
 }

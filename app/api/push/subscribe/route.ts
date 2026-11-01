@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { isMisAuthenticated } from '@/lib/auth';
+import { getMisSession, isMisAuthenticated } from '@/lib/auth';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
 
 const subscriptionSchema = z.object({
@@ -28,9 +28,8 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  if (!(await isMisAuthenticated())) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const session = await getMisSession();
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const parsed = subscriptionSchema.safeParse(
     await request.json().catch(() => null)
@@ -49,6 +48,8 @@ export async function POST(request: Request) {
     .upsert(
       {
         endpoint,
+        session_key: session.key,
+        expires_at: new Date(session.exp).toISOString(),
         p256dh: keys.p256dh,
         auth: keys.auth,
         user_agent: request.headers.get('user-agent'),

@@ -1,3 +1,4 @@
+import Link from 'next/link';
 export default function OfflinePage() {
   return (
     <main className="pwa-offline-page">
@@ -9,9 +10,9 @@ export default function OfflinePage() {
           An internet connection is required to securely load your tickets and
           send updates.
         </p>
-        <a className="pwa-offline-retry" href="/">
+        <Link className="pwa-offline-retry" href="/">
           Try again
-        </a>
+        </Link>
       </section>
     </main>
   );

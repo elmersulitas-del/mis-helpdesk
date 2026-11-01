@@ -1,11 +1,13 @@
-import { NextResponse } from 'next/server';
-import { getTicketHistory } from '@/lib/ticket-history';
-import { deliverReceipt } from '@/lib/email-receipts';
+import { after, NextResponse } from 'next/server';
+import { ticketHistoryResponse } from '@/lib/ticket-history';
+import { processEmailQueue } from '@/lib/email-receipts';
 import { randomBytes } from 'crypto';
 import { z } from 'zod';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
 import { isMisAuthenticated } from '@/lib/auth';
 import { sendNewTicketPush } from '@/lib/push-notifications';
+
+export const maxDuration = 60;
 
 const ALLOWED_DOMAIN = process.env.ALLOWED_GOOGLE_DOMAIN || 'immaculada.edu.ph';
 
@@ -77,17 +79,14 @@ export async function POST(req: Request) {
 
     if (error) throw error;
 
-    await sendNewTicketPush(data).catch((pushError) => {
-      console.error('New-ticket push notification failed:', pushError);
+    after(async () => {
+      await Promise.allSettled([sendNewTicketPush(data), processEmailQueue(data.id)]);
     });
-
-    const receipt = await deliverReceipt(data);
 
     const base = process.env.NEXT_PUBLIC_APP_URL || new URL(req.url).origin;
     return NextResponse.json({
       ticket_number: data.ticket_number,
-      receipt_status: receipt.status,
-      receipt_message: receipt.message,
+      receipt_message: 'Your request is saved. An email acknowledgement will be sent automatically.',
       tracking_url: `${base}/track/${data.public_token}`,
     }, { status: 201 });
   } catch (e) {
@@ -96,13 +95,13 @@ export async function POST(req: Request) {
   }
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   if (!await isMisAuthenticated()) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   try {
-    return NextResponse.json(await getTicketHistory());
+    return await ticketHistoryResponse(request);
   } catch {
     return NextResponse.json({ error: 'Unable to load complete ticket history.' }, { status: 500 });
   }

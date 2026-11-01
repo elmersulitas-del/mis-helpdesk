@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import ClientDashboard from '@/components/ClientDashboard';
 import { getSupabaseBrowser } from '@/lib/supabase-browser';
 
-const allowedDomain = 'immaculada.edu.ph';
+const allowedDomain = (process.env.NEXT_PUBLIC_ALLOWED_GOOGLE_DOMAIN || 'immaculada.edu.ph').toLowerCase();
 
 export default function EmployeePortal() {
   const [session, setSession] = useState<Session | null>(null);
