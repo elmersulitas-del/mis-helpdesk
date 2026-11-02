@@ -1726,7 +1726,7 @@ textarea {
 
 @media print {
   @page {
-    ssize: A4 portrait;
+    size: A4 portrait;
     margin: 8mm;
   }
 
@@ -1787,6 +1787,12 @@ textarea {
 
     background: #ffffff !important;
     box-shadow: none !important;
+  }
+
+  /* Keep both ends of the header rule and table inside the paper edges. */
+  .report-page .print-report {
+    box-sizing: border-box;
+    padding-inline: 6mm !important;
   }
 
   /* Header and logo */
