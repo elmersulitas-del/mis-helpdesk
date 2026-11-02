@@ -45,31 +45,38 @@ export default function ClientDashboard({
   onSignOut,
 }: Props) {
   const etagRef = useRef('');
-  const loadingRef = useRef(false);
+  const activeRequest = useRef<AbortController | null>(null);
   const [tickets, setTickets] = useState<Ticket[]>([]);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedNumber, setSelectedNumber] = useState<string | null>(null);
   const [view, setView] = useState<'NEW' | 'HISTORY' | 'TICKET'>('NEW');
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   const loadTickets = useCallback(
-    async (quiet = false) => {
-      if (loadingRef.current) return;
-      loadingRef.current = true;
+    async (quiet = false, refreshAfterSubmit = false) => {
+      if (activeRequest.current) {
+        if (!refreshAfterSubmit) return;
+        activeRequest.current.abort();
+      }
+      const controller = new AbortController();
+      activeRequest.current = controller;
       if (!quiet) setLoading(true);
 
       try {
         const response = await fetch('/api/my-tickets', {
           cache: 'no-store',
+          signal: controller.signal,
           headers: {
             authorization: `Bearer ${session.access_token}`,
             ...(etagRef.current ? { 'If-None-Match': etagRef.current } : {}),
           },
         });
+        if (controller.signal.aborted) return;
         if (response.status === 304) { setError(''); return; }
         const result = await response.json().catch(() => null);
 
+        if (controller.signal.aborted) return;
         if (!response.ok) {
           setError(
             result?.error || 'Unable to load your ticket history.'
@@ -81,10 +88,13 @@ export default function ClientDashboard({
         setTickets(result);
         setError('');
       } catch {
+        if (controller.signal.aborted) return;
         setError('Unable to load your ticket history.');
       } finally {
-        loadingRef.current = false;
-        if (!quiet) setLoading(false);
+        if (activeRequest.current === controller) {
+          activeRequest.current = null;
+          setLoading(false);
+        }
       }
     },
     [session.access_token]
@@ -97,11 +107,15 @@ export default function ClientDashboard({
       10000
     );
 
-    return () => window.clearInterval(timer);
+    return () => {
+      window.clearInterval(timer);
+      activeRequest.current?.abort();
+      activeRequest.current = null;
+    };
   }, [loadTickets]);
 
   const selectedTicket =
-    tickets.find((ticket) => ticket.id === selectedId) || null;
+    tickets.find((ticket) => ticket.ticket_number === selectedNumber) || null;
 
   const visibleTickets = useMemo(() => {
     const needle = search.trim().toLowerCase();
@@ -120,8 +134,17 @@ export default function ClientDashboard({
       ticket.status !== 'CANCELLED'
   ).length;
 
+  function openSubmittedTicket(ticketNumber: string) {
+    setSelectedNumber(ticketNumber);
+    setView('TICKET');
+    setSearch('');
+    setError('');
+    etagRef.current = '';
+    void loadTickets(true, true);
+  }
+
   function openTicket(ticket: Ticket) {
-    setSelectedId(ticket.id);
+    setSelectedNumber(ticket.ticket_number);
     setView('TICKET');
   }
 
@@ -229,7 +252,7 @@ export default function ClientDashboard({
               visibleTickets.map((ticket) => (
                 <button
                   className={`client-ticket-item ${
-                    view === 'TICKET' && selectedId === ticket.id
+                    view === 'TICKET' && selectedNumber === ticket.ticket_number
                       ? 'is-active'
                       : ''
                   }`}
@@ -273,7 +296,9 @@ export default function ClientDashboard({
             </div>
           )}
 
-          {view === 'NEW' || !selectedTicket ? (
+          {view === 'TICKET' && !selectedTicket ? (
+            <p role="status">{error ? `Ticket ${selectedNumber} was saved.` : `Opening ticket ${selectedNumber}…`}</p>
+          ) : view === 'NEW' || !selectedTicket ? (
             <div className="client-new-request-view">
               <div className="client-page-heading">
                 <span>New ticket</span>
@@ -288,7 +313,7 @@ export default function ClientDashboard({
                 session={session}
                 fullName={fullName}
                 email={email}
-                onSubmitted={() => loadTickets(true)}
+                onSubmitted={openSubmittedTicket}
               />
             </div>
           ) : (
